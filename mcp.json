@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "turbo": {
+      "command": "/Users/alphonso/Documents/Code/PycharmProjects/turboCode/.venv/bin/python",
+      "args": [
+        "/Users/alphonso/Documents/Code/PycharmProjects/turboCode/turbo/mcp_server.py"
+      ],
+      "env": {
+        "TURBO_API_URL": "http://localhost:8001/api/v1"
+      }
+    }
+  }
+}

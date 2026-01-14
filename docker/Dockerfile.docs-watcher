@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    httpx \
+    pyyaml \
+    watchdog
+
+# Copy scripts
+COPY scripts/docs_watcher.py /app/docs_watcher.py
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Set environment variables
+ENV TURBO_API_URL=http://api:8000/api/v1
+ENV DOCS_WATCH_DIR=/docs
+
+# Run the watcher
+CMD ["python", "-u", "docs_watcher.py"]

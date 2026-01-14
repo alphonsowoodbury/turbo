@@ -1,0 +1,18 @@
+# Minimal requirements for the Claude webhook server
+# Only includes dependencies needed for webhook functionality
+
+# Web server
+aiohttp>=3.9.0
+
+# HTTP client for API calls
+httpx>=0.25.0
+
+# Claude AI API
+anthropic>=0.40.0
+
+# Validation
+pydantic>=2.4.0
+pydantic-settings>=2.0.0
+
+# Utilities
+python-dotenv>=0.21.0

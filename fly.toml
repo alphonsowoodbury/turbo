@@ -1,0 +1,31 @@
+app = 'turbo-plan'
+primary_region = 'ewr'
+
+[build]
+  dockerfile = "Dockerfile.fly"
+
+[env]
+  GRAPH_ENABLED = "false"
+  TURBO_ENVIRONMENT = "production"
+  API_HOST = "0.0.0.0"
+  API_PORT = "8080"
+  # DATABASE_URL set via `fly postgres attach` (secret)
+  SECURITY_CORS_ORIGINS = '["https://turbo-plan.fly.dev","https://turbo-plan-web.fly.dev","http://localhost:3000","http://localhost:3001"]'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+# Remove SQLite mount - using Postgres now
+# [[mounts]]
+#   source = "turbo_data"
+#   destination = "/data"
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

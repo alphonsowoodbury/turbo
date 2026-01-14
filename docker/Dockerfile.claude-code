@@ -1,0 +1,41 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install system dependencies (git, ssh, curl for Claude Code CLI)
+RUN apt-get update && apt-get install -y \
+    git \
+    ssh \
+    curl \
+    build-essential \
+    libpq5 \
+    ca-certificates \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (required for Claude CLI)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Claude CLI globally via npm
+RUN npm install -g @anthropic-ai/claude-code
+
+# Copy the entire codebase
+COPY . .
+
+# Install Python dependencies for the service
+RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic pydantic-settings python-dotenv asyncpg
+
+# Create workspace directory for cloning repos
+RUN mkdir -p /workspace
+
+# Expose service port
+EXPOSE 9000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:9000/health')"
+
+# Run the Claude Code headless service
+CMD ["python", "scripts/claude_headless_service.py"]
