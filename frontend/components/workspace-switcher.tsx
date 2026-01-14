@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Globe, Briefcase, Package, User } from "lucide-react";
+import { Check, ChevronDown, Globe, Package, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +16,6 @@ const workspaces: Array<{ value: Workspace; label: string; icon: React.ElementTy
   { value: "all", label: "All Work", icon: Globe },
   { value: "personal", label: "Personal", icon: User },
   { value: "freelance", label: "Freelance", icon: Package },
-  { value: "work", label: "JPMC", icon: Briefcase, company: "JPMC" },
 ];
 
 interface WorkspaceSwitcherProps {
