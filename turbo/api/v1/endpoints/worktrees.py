@@ -1,5 +1,6 @@
 """Worktrees API endpoints."""
 
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -7,6 +8,8 @@ from typing import List
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -161,8 +164,9 @@ async def delete_worktree(issue_key: str):
 
         return {"status": "success", "message": f"Worktree for {issue_key} deleted"}
 
-    except subprocess.CalledProcessError as e:
+    except subprocess.CalledProcessError:
+        logger.exception("Failed to delete worktree")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to delete worktree: {e.stderr.decode()}"
+            detail="Failed to delete worktree",
         )

@@ -1,5 +1,6 @@
 """Document API endpoints."""
 
+import logging
 import re
 from pathlib import Path
 from uuid import UUID
@@ -18,6 +19,8 @@ from turbo.utils.exceptions import (
 from turbo.utils.exceptions import (
     ValidationError as TurboValidationError,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -201,10 +204,11 @@ async def export_document(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Document with id {document_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Export failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Export failed: {e!s}",
+            detail="Export failed",
         )
 
 
@@ -301,8 +305,14 @@ async def upload_document_file(
     Content starts here...
     """
     try:
-        # Read file content
-        content_bytes = await file.read()
+        # Read file content with size limit (10 MB)
+        max_size = 10 * 1024 * 1024
+        content_bytes = await file.read(max_size + 1)
+        if len(content_bytes) > max_size:
+            raise HTTPException(
+                status_code=413,
+                detail="File too large. Maximum upload size is 10 MB.",
+            )
         content = content_bytes.decode('utf-8')
 
         # Parse frontmatter
@@ -384,10 +394,11 @@ async def upload_document_file(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File must be UTF-8 encoded text"
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to upload document")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload document: {str(e)}"
+            detail="Failed to upload document",
         )
 
 

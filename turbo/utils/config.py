@@ -72,7 +72,7 @@ class ClaudeSettings(BaseSettings):
 class SecuritySettings(BaseSettings):
     """Security configuration settings."""
 
-    secret_key: str = "dev-secret-key-change-in-production"  # noqa: S105
+    secret_key: str = ""  # Set via SECURITY_SECRET_KEY env var
     cors_origins: list[str] = [
         "http://localhost:3001",
         "http://127.0.0.1:3001",
@@ -114,7 +114,7 @@ class GraphSettings(BaseSettings):
 
     uri: str = "bolt://localhost:7687"
     user: str = "neo4j"
-    password: str = "turbo_graph_password"  # noqa: S105
+    password: str = ""  # Set via NEO4J_PASSWORD env var
     database: str = "neo4j"
     embedding_model: str = "all-MiniLM-L6-v2"  # Fast, high-quality embeddings
     enabled: bool = True

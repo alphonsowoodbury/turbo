@@ -1,8 +1,9 @@
 """Staff API endpoints."""
 
-from uuid import UUID
-import json
 import asyncio
+import json
+import logging
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
@@ -24,6 +25,8 @@ from turbo.core.schemas.staff import (
 from turbo.core.services import get_webhook_service
 from turbo.core.services.staff import StaffService
 from turbo.utils.exceptions import StaffNotFoundError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -59,10 +62,11 @@ async def create_staff(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to create staff")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create staff: {str(e)}",
+            detail="Failed to create staff",
         )
 
 
@@ -180,10 +184,11 @@ async def update_staff(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update staff")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update staff: {str(e)}",
+            detail="Failed to update staff",
         )
 
 
@@ -270,10 +275,11 @@ async def send_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Staff with id {staff_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send message")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send message: {str(e)}",
+            detail="Failed to send message",
         )
 
 
@@ -296,10 +302,11 @@ async def add_assistant_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Staff with id {staff_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to add assistant message")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to add assistant message: {str(e)}",
+            detail="Failed to add assistant message",
         )
 
 
@@ -432,9 +439,10 @@ async def send_message_stream(
                 # Send done event with message ID
                 yield f"data: {json.dumps({'type': 'done', 'message_id': str(assistant_message.id)})}\n\n"
 
-            except Exception as e:
+            except Exception:
+                logger.exception("Error during streaming response")
                 # Send error event
-                yield f"data: {json.dumps({'type': 'error', 'detail': str(e)})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'detail': 'Streaming response failed'})}\n\n"
 
         return StreamingResponse(
             generate(),
@@ -451,8 +459,9 @@ async def send_message_stream(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Staff with id {staff_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send streaming message")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send streaming message: {str(e)}",
+            detail="Failed to send streaming message",
         )

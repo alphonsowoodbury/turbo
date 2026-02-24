@@ -1,10 +1,10 @@
 """Pydantic schemas for Podcast models."""
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Podcast Show Schemas
@@ -12,14 +12,14 @@ class PodcastShowBase(BaseModel):
     """Base Podcast Show schema."""
 
     title: str = Field(..., max_length=500)
-    description: Optional[str] = None
-    author: Optional[str] = Field(None, max_length=255)
-    publisher: Optional[str] = Field(None, max_length=255)
+    description: str | None = None
+    author: str | None = Field(None, max_length=255)
+    publisher: str | None = Field(None, max_length=255)
     feed_url: str = Field(..., max_length=2048)
-    website_url: Optional[str] = Field(None, max_length=2048)
-    image_url: Optional[str] = Field(None, max_length=2048)
-    language: Optional[str] = Field(None, max_length=10)
-    categories: Optional[str] = Field(None, max_length=500)
+    website_url: str | None = Field(None, max_length=2048)
+    image_url: str | None = Field(None, max_length=2048)
+    language: str | None = Field(None, max_length=10)
+    categories: str | None = Field(None, max_length=500)
     explicit: bool = False
     is_subscribed: bool = True
     is_favorite: bool = False
@@ -36,36 +36,33 @@ class PodcastShowCreate(PodcastShowBase):
 class PodcastShowUpdate(BaseModel):
     """Schema for updating Podcast Show."""
 
-    title: Optional[str] = Field(None, max_length=500)
-    description: Optional[str] = None
-    author: Optional[str] = Field(None, max_length=255)
-    publisher: Optional[str] = Field(None, max_length=255)
-    feed_url: Optional[str] = Field(None, max_length=2048)
-    website_url: Optional[str] = Field(None, max_length=2048)
-    image_url: Optional[str] = Field(None, max_length=2048)
-    language: Optional[str] = Field(None, max_length=10)
-    categories: Optional[str] = Field(None, max_length=500)
-    explicit: Optional[bool] = None
-    is_subscribed: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
-    auto_fetch: Optional[bool] = None
+    title: str | None = Field(None, max_length=500)
+    description: str | None = None
+    author: str | None = Field(None, max_length=255)
+    publisher: str | None = Field(None, max_length=255)
+    feed_url: str | None = Field(None, max_length=2048)
+    website_url: str | None = Field(None, max_length=2048)
+    image_url: str | None = Field(None, max_length=2048)
+    language: str | None = Field(None, max_length=10)
+    categories: str | None = Field(None, max_length=500)
+    explicit: bool | None = None
+    is_subscribed: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
+    auto_fetch: bool | None = None
 
 
 class PodcastShowResponse(PodcastShowBase):
     """Schema for Podcast Show response."""
 
     id: UUID
-    last_fetched_at: Optional[datetime] = None
+    last_fetched_at: datetime | None = None
     total_episodes: int = 0
     listened_episodes: int = 0
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        """Pydantic config."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PodcastShowWithEpisodes(PodcastShowResponse):
@@ -80,20 +77,20 @@ class PodcastEpisodeBase(BaseModel):
 
     show_id: UUID
     title: str = Field(..., max_length=500)
-    description: Optional[str] = None
-    summary: Optional[str] = None
-    episode_number: Optional[int] = None
-    season_number: Optional[int] = None
+    description: str | None = None
+    summary: str | None = None
+    episode_number: int | None = None
+    season_number: int | None = None
     audio_url: str = Field(..., max_length=2048)
-    duration: Optional[int] = None
-    file_size: Optional[int] = None
-    mime_type: Optional[str] = Field(None, max_length=100)
-    published_at: Optional[datetime] = None
-    guid: Optional[str] = Field(None, max_length=500)
-    transcript: Optional[str] = None
-    transcript_url: Optional[str] = Field(None, max_length=2048)
-    show_notes: Optional[str] = None
-    image_url: Optional[str] = Field(None, max_length=2048)
+    duration: int | None = None
+    file_size: int | None = None
+    mime_type: str | None = Field(None, max_length=100)
+    published_at: datetime | None = None
+    guid: str | None = Field(None, max_length=500)
+    transcript: str | None = None
+    transcript_url: str | None = Field(None, max_length=2048)
+    show_notes: str | None = None
+    image_url: str | None = Field(None, max_length=2048)
     is_played: bool = False
     is_favorite: bool = False
     is_archived: bool = False
@@ -111,45 +108,42 @@ class PodcastEpisodeCreate(PodcastEpisodeBase):
 class PodcastEpisodeUpdate(BaseModel):
     """Schema for updating Podcast Episode."""
 
-    title: Optional[str] = Field(None, max_length=500)
-    description: Optional[str] = None
-    summary: Optional[str] = None
-    episode_number: Optional[int] = None
-    season_number: Optional[int] = None
-    audio_url: Optional[str] = Field(None, max_length=2048)
-    duration: Optional[int] = None
-    file_size: Optional[int] = None
-    mime_type: Optional[str] = Field(None, max_length=100)
-    published_at: Optional[datetime] = None
-    guid: Optional[str] = Field(None, max_length=500)
-    transcript: Optional[str] = None
-    transcript_url: Optional[str] = Field(None, max_length=2048)
-    show_notes: Optional[str] = None
-    image_url: Optional[str] = Field(None, max_length=2048)
-    is_played: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
-    is_downloaded: Optional[bool] = None
-    play_position: Optional[int] = None
-    play_count: Optional[int] = None
+    title: str | None = Field(None, max_length=500)
+    description: str | None = None
+    summary: str | None = None
+    episode_number: int | None = None
+    season_number: int | None = None
+    audio_url: str | None = Field(None, max_length=2048)
+    duration: int | None = None
+    file_size: int | None = None
+    mime_type: str | None = Field(None, max_length=100)
+    published_at: datetime | None = None
+    guid: str | None = Field(None, max_length=500)
+    transcript: str | None = None
+    transcript_url: str | None = Field(None, max_length=2048)
+    show_notes: str | None = None
+    image_url: str | None = Field(None, max_length=2048)
+    is_played: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
+    is_downloaded: bool | None = None
+    play_position: int | None = None
+    play_count: int | None = None
 
 
 class PodcastEpisodeResponse(PodcastEpisodeBase):
     """Schema for Podcast Episode response."""
 
     id: UUID
-    last_played_at: Optional[datetime] = None
+    last_played_at: datetime | None = None
     transcript_generated: bool = False
-    transcript_generated_at: Optional[datetime] = None
-    transcript_data: Optional[dict[str, Any]] = None  # Structured transcript with timestamps and speakers
+    transcript_generated_at: datetime | None = None
+    transcript_data: dict[str, Any] | None = None  # Structured transcript with timestamps and speakers
     embedding_generated: bool = False
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        """Pydantic config."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PodcastEpisodeWithShow(PodcastEpisodeResponse):
@@ -169,17 +163,17 @@ class PodcastFeedFetch(BaseModel):
     """Schema for fetching episodes from feed."""
 
     show_id: UUID
-    limit: Optional[int] = Field(None, ge=1, le=100)
+    limit: int | None = Field(None, ge=1, le=100)
 
 
 # Filter Schemas
 class PodcastShowFilter(BaseModel):
     """Schema for filtering podcast shows."""
 
-    is_subscribed: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
-    publisher: Optional[str] = None
+    is_subscribed: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
+    publisher: str | None = None
     limit: int = Field(100, ge=1, le=1000)
     offset: int = Field(0, ge=0)
 
@@ -187,12 +181,12 @@ class PodcastShowFilter(BaseModel):
 class PodcastEpisodeFilter(BaseModel):
     """Schema for filtering podcast episodes."""
 
-    show_id: Optional[UUID] = None
-    is_played: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
-    season_number: Optional[int] = None
-    has_transcript: Optional[bool] = None
+    show_id: UUID | None = None
+    is_played: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
+    season_number: int | None = None
+    has_transcript: bool | None = None
     limit: int = Field(100, ge=1, le=1000)
     offset: int = Field(0, ge=0)
 
@@ -209,4 +203,4 @@ class TranscriptGenerate(BaseModel):
     """Schema for transcript generation request."""
 
     episode_id: UUID
-    model: Optional[str] = Field(None, max_length=100)  # e.g., "whisper-1"
+    model: str | None = Field(None, max_length=100)  # e.g., "whisper-1"

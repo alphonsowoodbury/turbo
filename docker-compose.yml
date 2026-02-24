@@ -7,9 +7,8 @@ services:
     container_name: turbo-postgres
     environment:
       POSTGRES_DB: turbo
-      POSTGRES_USER: turbo
-      POSTGRES_PASSWORD: turbo_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: ${POSTGRES_USER:-turbo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
@@ -32,14 +31,15 @@ services:
       target: production
     container_name: turbo-api
     environment:
-      - DATABASE_URL=postgresql+asyncpg://turbo:turbo_password@postgres:5432/turbo
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-turbo}:${POSTGRES_PASSWORD}@postgres:5432/turbo
       - NEO4J_URI=bolt://neo4j:7687
       - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=turbo_graph_password
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:?Set NEO4J_PASSWORD in .env}
       - API_HOST=0.0.0.0
       - API_PORT=8000
       - TURBO_ENVIRONMENT=production
       - TURBO_DEBUG=false
+      - TURBO_API_KEY=${TURBO_API_KEY:-}
       - CLAUDE_AUTO_RESPOND=true
       - TURBO_API_URL=http://localhost:8000/api/v1
       - CLAUDE_WEBHOOK_URL=http://webhook:9002/webhook/comment
@@ -65,8 +65,6 @@ services:
     volumes:
       - api_data:/app/.turbo
       - api_logs:/app/logs
-      # - /Users/alphonso/Documents/Code/PycharmProjects/turboCode:/workspace/turboCode
-      # - /Users/alphonso/worktrees:/Users/alphonso/worktrees
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
@@ -121,7 +119,7 @@ services:
     image: neo4j:5-community
     container_name: turbo-neo4j
     environment:
-      - NEO4J_AUTH=neo4j/turbo_graph_password
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:?Set NEO4J_PASSWORD in .env}
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_memory_heap_initial__size=512m
@@ -172,8 +170,7 @@ services:
     environment:
       POSTGRES_DB: turbo_test
       POSTGRES_USER: turbo_test
-      POSTGRES_PASSWORD: turbo_test_password
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-test_only_local}
     ports:
       - "5433:5432"
     networks:
@@ -188,10 +185,9 @@ services:
     image: dpage/pgadmin4:latest
     container_name: turbo-pgadmin
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@localhost}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD in .env}
       - PGADMIN_CONFIG_SERVER_MODE=False
-      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
     ports:
       - "5050:80"
     networks:
@@ -202,21 +198,22 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    profiles:
+      - tools
 
   # Claude Code Service - Headless AI Subagents & Autonomous Issue Implementation
-  # Uses Claude Code CLI for local execution (cost-effective)
   claude-code:
     build:
       context: .
       dockerfile: docker/Dockerfile.claude-code
     container_name: turbo-claude-code
     environment:
-      - DATABASE_URL=postgresql://turbo:turbo_password@postgres:5432/turbo
-      - CLAUDE_BACKEND=${CLAUDE_BACKEND:-api}  # "api" or "claude-cli"
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-turbo}:${POSTGRES_PASSWORD}@postgres:5432/turbo
+      - CLAUDE_BACKEND=${CLAUDE_BACKEND:-api}
       - MCP_SERVER_URL=http://turbo-api:8000
       - SERVICE_PORT=9000
       - WORKSPACE_DIR=/workspace
-      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-turbo-webhook-secret-change-me}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:?Set WEBHOOK_SECRET in .env}
     ports:
       - "9000:9000"
     networks:
@@ -225,8 +222,8 @@ services:
       - ./subagents:/app/subagents:ro
       - ./skills:/app/skills:ro
       - claude_data:/root/.config/claude-code
-      - workspace_data:/workspace  # Workspace for issue implementations
-      - .:/app/project:rw  # Mount project for autonomous code changes
+      - workspace_data:/workspace
+      - .:/app/project:rw
     depends_on:
       api:
         condition: service_healthy
@@ -254,8 +251,6 @@ services:
     networks:
       - turbo-network
     volumes:
-      # - /Users/alphonso/Documents/Code/PycharmProjects/turboCode:/workspace/turboCode
-      # - /Users/alphonso/worktrees:/Users/alphonso/worktrees
       - .:/workspace/turboCode:ro
     depends_on:
       api:

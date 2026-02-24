@@ -83,13 +83,12 @@ async def invoke_subagent(request: SubagentRequest) -> SubagentResponse:
             )
 
             if response.status_code != 200:
-                error_detail = response.text
                 logger.error(
-                    f"Claude service error: {response.status_code} - {error_detail}"
+                    "Claude service error: %s - %s", response.status_code, response.text
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Claude service error: {error_detail}",
+                    detail="Claude service error",
                 )
 
             result = response.json()
@@ -105,7 +104,7 @@ async def invoke_subagent(request: SubagentRequest) -> SubagentResponse:
         logger.error("Failed to connect to Claude service")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Claude service is unavailable. Please check the claude-code container.",
+            detail="Claude service is unavailable",
         )
     except httpx.TimeoutException:
         logger.error("Claude service request timed out")
@@ -113,11 +112,11 @@ async def invoke_subagent(request: SubagentRequest) -> SubagentResponse:
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Claude service request timed out",
         )
-    except Exception as e:
-        logger.exception(f"Unexpected error invoking subagent: {e}")
+    except Exception:
+        logger.exception("Unexpected error invoking subagent")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error: {str(e)}",
+            detail="Internal server error",
         )
 
 
@@ -147,13 +146,12 @@ async def list_subagents(agent_set: str = "turbo") -> SubagentListResponse:
             )
 
             if response.status_code != 200:
-                error_detail = response.text
                 logger.error(
-                    f"Claude service error: {response.status_code} - {error_detail}"
+                    "Claude service error: %s - %s", response.status_code, response.text
                 )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Claude service error: {error_detail}",
+                    detail="Claude service error",
                 )
 
             data = response.json()
@@ -163,7 +161,7 @@ async def list_subagents(agent_set: str = "turbo") -> SubagentListResponse:
         logger.error("Failed to connect to Claude service")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Claude service is unavailable. Please check the claude-code container.",
+            detail="Claude service is unavailable",
         )
     except httpx.TimeoutException:
         logger.error("Claude service request timed out")
@@ -171,9 +169,9 @@ async def list_subagents(agent_set: str = "turbo") -> SubagentListResponse:
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Claude service request timed out",
         )
-    except Exception as e:
-        logger.exception(f"Unexpected error listing subagents: {e}")
+    except Exception:
+        logger.exception("Unexpected error listing subagents")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected error: {str(e)}",
+            detail="Internal server error",
         )

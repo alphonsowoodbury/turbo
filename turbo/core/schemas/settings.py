@@ -4,8 +4,9 @@ Settings Schemas
 Pydantic schemas for settings validation
 """
 
-from pydantic import BaseModel, Field
-from typing import Any, Optional
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SettingBase(BaseModel):
@@ -13,7 +14,7 @@ class SettingBase(BaseModel):
     key: str = Field(..., max_length=255)
     value: dict[str, Any]
     category: str = Field(default="general", max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
+    description: str | None = Field(None, max_length=500)
     is_public: bool = Field(default=False)
 
 
@@ -24,10 +25,10 @@ class SettingCreate(SettingBase):
 
 class SettingUpdate(BaseModel):
     """Schema for updating a setting"""
-    value: Optional[dict[str, Any]] = None
-    category: Optional[str] = Field(None, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
-    is_public: Optional[bool] = None
+    value: dict[str, Any] | None = None
+    category: str | None = Field(None, max_length=100)
+    description: str | None = Field(None, max_length=500)
+    is_public: bool | None = None
 
 
 class SettingResponse(SettingBase):
@@ -36,8 +37,7 @@ class SettingResponse(SettingBase):
     created_at: str
     updated_at: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # Specific setting schemas

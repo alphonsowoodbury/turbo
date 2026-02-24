@@ -1,12 +1,15 @@
 """The Muse API integration for curated jobs with company culture info."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
 import aiohttp
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class TheMuseScraper(BaseScraper):
@@ -92,14 +95,14 @@ class TheMuseScraper(BaseScraper):
                 async with session.get(url, params=params) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"The Muse API error ({response.status}): {error_text}")
+                        logger.warning("The Muse API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
 
                     # Parse results
                     results = data.get("results", [])
-                    print(f"The Muse returned {len(results)} jobs")
+                    logger.info("The Muse returned %d jobs", len(results))
 
                     for job_data in results[:limit]:
                         job = self._parse_job_result(job_data)
@@ -107,7 +110,7 @@ class TheMuseScraper(BaseScraper):
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling The Muse API: {e}")
+            logger.error("Error calling The Muse API: %s", e)
 
         return jobs
 
@@ -192,7 +195,7 @@ class TheMuseScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing The Muse job result: {e}")
+            logger.error("Error parsing The Muse job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:

@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import subprocess
 from pathlib import Path
@@ -12,6 +13,8 @@ import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
+
+logger = logging.getLogger(__name__)
 
 # Initialize MCP server
 app = Server("turbo")
@@ -3593,7 +3596,14 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                 from pathlib import Path
                 from turbo.core.services.document_loader import DocumentLoaderService
 
-                file_path = Path(arguments["file_path"])
+                file_path = Path(arguments["file_path"]).resolve()
+
+                # Path traversal protection: block sensitive system paths
+                _blocked_prefixes = ("/etc/", "/var/", "/root/", "/proc/", "/sys/")
+                if any(str(file_path).startswith(p) for p in _blocked_prefixes):
+                    return [TextContent(type="text", text=json.dumps({
+                        "error": "Access denied: file path is outside allowed directories",
+                    }))]
                 title = arguments.get("title")
                 doc_type = arguments.get("doc_type")
                 project_id = arguments.get("project_id")
@@ -3699,13 +3709,10 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                         }
                     }))]
 
-                except Exception as e:
-                    import traceback
-                    error_trace = traceback.format_exc()
+                except Exception:
+                    logger.exception("Failed to load document")
                     return [TextContent(type="text", text=json.dumps({
                         "error": "Failed to load document",
-                        "message": str(e),
-                        "traceback": error_trace
                     }))]
 
             elif name == "list_documents":
@@ -3780,7 +3787,15 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
             # Resumes
             elif name == "upload_resume":
-                file_path = arguments["file_path"]
+                from pathlib import Path as _Path
+                file_path = str(_Path(arguments["file_path"]).resolve())
+
+                # Path traversal protection
+                _blocked = ("/etc/", "/var/", "/root/", "/proc/", "/sys/")
+                if any(file_path.startswith(p) for p in _blocked):
+                    return [TextContent(type="text", text=json.dumps({
+                        "error": "Access denied: file path is outside allowed directories",
+                    }))]
                 title = arguments["title"]
                 target_role = arguments.get("target_role")
                 target_company = arguments.get("target_company")
@@ -4330,8 +4345,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                         )]
                 except ValueError as e:
                     return [TextContent(type="text", text=f"Error: {str(e)}")]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error creating dependency: {str(e)}")]
+                except Exception:
+                    logger.exception("Error creating dependency")
+                    return [TextContent(type="text", text="Error creating dependency")]
 
             elif name == "remove_blocker":
                 from uuid import UUID as PyUUID
@@ -4353,8 +4369,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                             )]
                         else:
                             return [TextContent(type="text", text="Dependency not found")]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error removing dependency: {str(e)}")]
+                except Exception:
+                    logger.exception("Error removing dependency")
+                    return [TextContent(type="text", text="Error removing dependency")]
 
             elif name == "get_blocking_issues":
                 from uuid import UUID as PyUUID
@@ -4375,8 +4392,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                                 "count": len(blocking_issues)
                             }, indent=2)
                         )]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error getting blocking issues: {str(e)}")]
+                except Exception:
+                    logger.exception("Error getting blocking issues")
+                    return [TextContent(type="text", text="Error getting blocking issues")]
 
             elif name == "get_blocked_issues":
                 from uuid import UUID as PyUUID
@@ -4397,8 +4415,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                                 "count": len(blocked_issues)
                             }, indent=2)
                         )]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error getting blocked issues: {str(e)}")]
+                except Exception:
+                    logger.exception("Error getting blocked issues")
+                    return [TextContent(type="text", text="Error getting blocked issues")]
 
             # Tags
             elif name == "create_tag":
@@ -4535,8 +4554,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                             project_path=project_path,
                             base_branch="main"
                         )
-                    except Exception as e:
-                        return [TextContent(type="text", text=f"Failed to create worktree: {str(e)}")]
+                    except Exception:
+                        logger.exception("Failed to create worktree")
+                        return [TextContent(type="text", text="Failed to create worktree")]
 
                 # Update issue via API (status change, work log creation)
                 payload = {
@@ -4594,8 +4614,9 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                                 # Remove worktree
                                 worktree_removed = remove_worktree_local(worktree_path, force=False)
                                 api_result["worktree_removed"] = worktree_removed
-                            except Exception as e:
-                                api_result["worktree_cleanup_error"] = str(e)
+                            except Exception:
+                                logger.exception("Worktree cleanup failed")
+                                api_result["worktree_cleanup_error"] = "Cleanup failed"
 
                 return [TextContent(type="text", text=json.dumps(api_result, indent=2))]
 
@@ -4604,16 +4625,18 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                 try:
                     worktrees = list_worktrees_local(project_path)
                     return [TextContent(type="text", text=json.dumps(worktrees, indent=2))]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error listing worktrees: {str(e)}")]
+                except Exception:
+                    logger.exception("Error listing worktrees")
+                    return [TextContent(type="text", text="Error listing worktrees")]
 
             elif name == "get_worktree_status":
                 worktree_path = arguments["worktree_path"]
                 try:
                     status = get_worktree_status_local(worktree_path)
                     return [TextContent(type="text", text=json.dumps(status, indent=2))]
-                except Exception as e:
-                    return [TextContent(type="text", text=f"Error getting worktree status: {str(e)}")]
+                except Exception:
+                    logger.exception("Error getting worktree status")
+                    return [TextContent(type="text", text="Error getting worktree status")]
 
             # Job Search Tools
             elif name == "create_search_criteria":
@@ -4675,18 +4698,14 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
                 return [TextContent(type="text", text=f"Unknown tool: {name}")]
 
         except httpx.HTTPError as e:
-            error_msg = f"Error calling Turbo API: {str(e)}"
+            logger.exception("Error calling Turbo API")
+            error_msg = "Error calling Turbo API"
             if hasattr(e, "response") and e.response is not None:
-                try:
-                    error_detail = e.response.json()
-                    error_msg = f"API Error: {error_detail}"
-                except Exception:
-                    error_msg = f"API Error: {e.response.text}"
+                error_msg = f"API Error (HTTP {e.response.status_code})"
             return [TextContent(type="text", text=error_msg)]
-        except Exception as e:
-            import traceback
-            error_trace = traceback.format_exc()
-            return [TextContent(type="text", text=f"Unexpected error: {str(e)}\n\nTraceback:\n{error_trace}")]
+        except Exception:
+            logger.exception("Unexpected error in MCP tool handler")
+            return [TextContent(type="text", text="Unexpected error processing request")]
 
 
 async def main():

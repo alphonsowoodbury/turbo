@@ -1,8 +1,9 @@
 """Mentor API endpoints."""
 
-from uuid import UUID
-import json
 import asyncio
+import json
+import logging
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
@@ -24,6 +25,8 @@ from turbo.core.services import get_webhook_service
 from turbo.core.services.mentor import MentorService
 from turbo.utils.exceptions import MentorNotFoundError
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 
@@ -35,10 +38,11 @@ async def create_mentor(
     """Create a new mentor."""
     try:
         return await mentor_service.create_mentor(mentor_data)
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to create mentor")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create mentor: {str(e)}",
+            detail="Failed to create mentor",
         )
 
 
@@ -98,10 +102,11 @@ async def update_mentor(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mentor with id {mentor_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update mentor")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update mentor: {str(e)}",
+            detail="Failed to update mentor",
         )
 
 
@@ -149,10 +154,11 @@ async def send_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mentor with id {mentor_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send message to mentor")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send message: {str(e)}",
+            detail="Failed to send message",
         )
 
 
@@ -206,9 +212,10 @@ async def send_message_stream(
                 # Send done event with message ID
                 yield f"data: {json.dumps({'type': 'done', 'message_id': str(assistant_message.id)})}\n\n"
 
-            except Exception as e:
+            except Exception:
+                logger.exception("Error during mentor streaming response")
                 # Send error event
-                yield f"data: {json.dumps({'type': 'error', 'detail': str(e)})}\n\n"
+                yield f"data: {json.dumps({'type': 'error', 'detail': 'Streaming response failed'})}\n\n"
 
         return StreamingResponse(
             generate(),
@@ -225,10 +232,11 @@ async def send_message_stream(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mentor with id {mentor_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send streaming message to mentor")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send streaming message: {str(e)}",
+            detail="Failed to send streaming message",
         )
 
 
@@ -246,10 +254,11 @@ async def add_assistant_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Mentor with id {mentor_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to add assistant message to mentor conversation")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to add assistant message: {str(e)}",
+            detail="Failed to add assistant message",
         )
 
 
@@ -290,10 +299,11 @@ async def update_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to update mentor message")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update message: {str(e)}",
+            detail="Failed to update message",
         )
 
 

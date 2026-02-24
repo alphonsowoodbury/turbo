@@ -3,9 +3,12 @@
 import asyncio
 import hashlib
 import hmac
+import ipaddress
 import json
 import logging
+import socket
 from datetime import datetime, timedelta
+from urllib.parse import urlparse
 from uuid import UUID
 
 import httpx
@@ -21,6 +24,52 @@ from turbo.core.schemas.webhook import (
 from turbo.utils.exceptions import WebhookNotFoundError
 
 logger = logging.getLogger(__name__)
+
+# Private IP ranges that webhook URLs must not target (SSRF protection)
+_BLOCKED_NETWORKS = [
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("169.254.0.0/16"),  # Link-local / cloud metadata
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),  # IPv6 private
+    ipaddress.ip_network("fe80::/10"),  # IPv6 link-local
+]
+
+
+def _is_url_safe(url: str) -> bool:
+    """Check that a webhook URL does not target private/internal networks."""
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        # Block common internal Docker DNS names
+        blocked_hosts = {"localhost", "host.docker.internal", "kubernetes.default"}
+        if hostname.lower() in blocked_hosts:
+            return False
+
+        # Resolve hostname and check all IPs
+        try:
+            addr_infos = socket.getaddrinfo(hostname, None)
+        except socket.gaierror:
+            return False
+
+        for _, _, _, _, sockaddr in addr_infos:
+            ip = ipaddress.ip_address(sockaddr[0])
+            for network in _BLOCKED_NETWORKS:
+                if ip in network:
+                    logger.warning(
+                        "Blocked webhook URL %s: resolves to private IP %s",
+                        url, ip,
+                    )
+                    return False
+
+        return True
+    except Exception:
+        return False
 
 
 class WebhookService:
@@ -141,6 +190,15 @@ class WebhookService:
                 "X-Webhook-Delivery-Id": str(delivery.id),
                 **(webhook.headers or {}),
             }
+
+            # SSRF protection: block requests to private/internal networks
+            if not _is_url_safe(webhook.url):
+                logger.warning("Blocked webhook delivery to unsafe URL: %s", webhook.url)
+                await self._handle_failed_delivery(
+                    webhook, delivery,
+                    error_message=f"Webhook URL targets a private or internal network: {webhook.url}",
+                )
+                return
 
             # Send webhook
             async with httpx.AsyncClient(timeout=webhook.timeout_seconds) as client:

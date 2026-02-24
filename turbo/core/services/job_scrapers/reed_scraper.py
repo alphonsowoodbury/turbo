@@ -1,12 +1,15 @@
 """Reed.co.uk API integration for UK jobs."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
 import aiohttp
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class ReedScraper(BaseScraper):
@@ -83,14 +86,14 @@ class ReedScraper(BaseScraper):
                 async with session.get(url, params=params, auth=auth) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"Reed API error ({response.status}): {error_text}")
+                        logger.warning("Reed API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
 
                     # Parse results
                     results = data.get("results", [])
-                    print(f"Reed returned {len(results)} jobs for query: {query}")
+                    logger.info("Reed returned %d jobs for query: %s", len(results), query)
 
                     for job_data in results[:limit]:
                         job = self._parse_job_result(job_data)
@@ -98,7 +101,7 @@ class ReedScraper(BaseScraper):
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling Reed API: {e}")
+            logger.error("Error calling Reed API: %s", e)
 
         return jobs
 
@@ -191,7 +194,7 @@ class ReedScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing Reed job result: {e}")
+            logger.error("Error parsing Reed job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:
@@ -223,5 +226,5 @@ class ReedScraper(BaseScraper):
                     return self._parse_job_result(data)
 
         except Exception as e:
-            print(f"Error fetching Reed job details: {e}")
+            logger.error("Error fetching Reed job details: %s", e)
             return None

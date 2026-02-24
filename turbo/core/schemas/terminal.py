@@ -1,21 +1,20 @@
 """Pydantic schemas for terminal sessions."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TerminalSessionCreate(BaseModel):
     """Schema for creating a terminal session."""
 
     user_id: str = Field(..., description="User ID owning the session")
-    project_id: Optional[UUID] = Field(None, description="Optional project context")
-    issue_id: Optional[UUID] = Field(None, description="Optional issue context")
+    project_id: UUID | None = Field(None, description="Optional project context")
+    issue_id: UUID | None = Field(None, description="Optional issue context")
     shell: str = Field("/bin/bash", description="Shell to use")
     working_directory: str = Field("~/", description="Initial working directory")
-    environment_vars: Optional[dict[str, str]] = Field(
+    environment_vars: dict[str, str] | None = Field(
         None, description="Additional environment variables"
     )
 
@@ -26,29 +25,26 @@ class TerminalSessionResponse(BaseModel):
     id: UUID
     user_id: str
     session_id: str
-    project_id: Optional[UUID] = None
-    issue_id: Optional[UUID] = None
+    project_id: UUID | None = None
+    issue_id: UUID | None = None
     shell: str
     working_directory: str
-    environment_vars: Optional[dict[str, str]] = None
-    pid: Optional[int] = None
+    environment_vars: dict[str, str] | None = None
+    pid: int | None = None
     is_active: bool
     last_activity: datetime
     created_at: datetime
-    ended_at: Optional[datetime] = None
+    ended_at: datetime | None = None
 
-    class Config:
-        """Pydantic config."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TerminalSessionUpdate(BaseModel):
     """Schema for updating a terminal session."""
 
-    is_active: Optional[bool] = None
-    last_activity: Optional[datetime] = None
-    ended_at: Optional[datetime] = None
+    is_active: bool | None = None
+    last_activity: datetime | None = None
+    ended_at: datetime | None = None
 
 
 class TerminalInput(BaseModel):

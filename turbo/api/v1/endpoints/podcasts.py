@@ -1,5 +1,6 @@
 """Podcast API endpoints."""
 
+import logging
 from typing import Any, Optional
 from uuid import UUID
 
@@ -20,6 +21,8 @@ from turbo.core.schemas.podcast import (
     PlayProgress,
 )
 from turbo.core.services.podcast import PodcastService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/podcasts", tags=["podcasts"])
 
@@ -413,10 +416,11 @@ async def transcribe_episode(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Transcription failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Transcription failed: {str(e)}",
+            detail="Transcription failed",
         )
 
 

@@ -1,5 +1,6 @@
 """Resume generation API endpoints."""
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -8,6 +9,8 @@ from pydantic import BaseModel, Field
 from turbo.api.dependencies import get_resume_generation_service
 from turbo.core.services.resume_generation import ResumeGenerationService
 from turbo.utils.exceptions import ValidationError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -114,10 +117,11 @@ async def generate_tailored_resume(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Resume generation failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Resume generation failed: {str(e)}",
+            detail="Resume generation failed",
         )
 
 
@@ -150,10 +154,11 @@ async def generate_from_application(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Resume generation from application failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Resume generation failed: {str(e)}",
+            detail="Resume generation failed",
         )
 
 
@@ -194,8 +199,9 @@ async def batch_generate_resumes(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Batch resume generation failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Batch generation failed: {str(e)}",
+            detail="Batch generation failed",
         )

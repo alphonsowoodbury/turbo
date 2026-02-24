@@ -1,5 +1,6 @@
 """Work Queue API endpoints for prioritized issue management."""
 
+import logging
 from datetime import datetime
 from uuid import UUID
 
@@ -9,6 +10,8 @@ from pydantic import BaseModel, Field
 from turbo.api.dependencies import get_issue_service
 from turbo.core.schemas.issue import IssueResponse
 from turbo.core.services.issue import IssueService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -53,10 +56,11 @@ async def get_work_queue(
             include_unranked=include_unranked,
         )
         return issues
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch work queue")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch work queue: {str(e)}",
+            detail="Failed to fetch work queue",
         )
 
 
@@ -73,10 +77,11 @@ async def get_next_issue(
     try:
         next_issue = await issue_service.get_next_issue()
         return next_issue
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to fetch next issue")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch next issue: {str(e)}",
+            detail="Failed to fetch next issue",
         )
 
 
@@ -101,10 +106,11 @@ async def set_issue_rank(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to set issue rank")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to set issue rank: {str(e)}",
+            detail="Failed to set issue rank",
         )
 
 
@@ -124,10 +130,11 @@ async def remove_issue_rank(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to remove issue rank")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to remove issue rank: {str(e)}",
+            detail="Failed to remove issue rank",
         )
 
 
@@ -147,10 +154,11 @@ async def bulk_rerank_issues(
             "updated_count": updated_count,
             "message": f"Successfully updated {updated_count} issue ranks",
         }
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to bulk rerank issues")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to bulk rerank issues: {str(e)}",
+            detail="Failed to bulk rerank issues",
         )
 
 
@@ -174,8 +182,9 @@ async def auto_rank_issues(
             "ranked_count": ranked_count,
             "message": f"Successfully auto-ranked {ranked_count} issues",
         }
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to auto-rank issues")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to auto-rank issues: {str(e)}",
+            detail="Failed to auto-rank issues",
         )

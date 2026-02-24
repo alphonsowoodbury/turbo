@@ -1,12 +1,15 @@
 """We Work Remotely API integration for remote jobs."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
 import aiohttp
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class WeWorkRemotelyScraper(BaseScraper):
@@ -77,7 +80,7 @@ class WeWorkRemotelyScraper(BaseScraper):
                 async with session.get(url, headers=headers) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"We Work Remotely API error ({response.status}): {error_text}")
+                        logger.warning("We Work Remotely API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
@@ -108,7 +111,7 @@ class WeWorkRemotelyScraper(BaseScraper):
                             else:
                                 filtered_jobs.append(job_data)
 
-                    print(f"We Work Remotely returned {len(filtered_jobs)} jobs matching criteria")
+                    logger.info("We Work Remotely returned %d jobs matching criteria", len(filtered_jobs))
 
                     for job_data in filtered_jobs[:limit]:
                         job = self._parse_job_result(job_data)
@@ -116,7 +119,7 @@ class WeWorkRemotelyScraper(BaseScraper):
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling We Work Remotely API: {e}")
+            logger.error("Error calling We Work Remotely API: %s", e)
 
         return jobs
 
@@ -192,7 +195,7 @@ class WeWorkRemotelyScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing We Work Remotely job result: {e}")
+            logger.error("Error parsing We Work Remotely job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:

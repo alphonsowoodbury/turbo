@@ -1,12 +1,15 @@
 """JSearch API integration via RapidAPI (job aggregator)."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
 import aiohttp
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class JSearchScraper(BaseScraper):
@@ -95,14 +98,14 @@ class JSearchScraper(BaseScraper):
                 async with session.get(url, params=params, headers=headers) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"JSearch API error ({response.status}): {error_text}")
+                        logger.warning("JSearch API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
 
                     # Parse results
                     results = data.get("data", [])
-                    print(f"JSearch returned {len(results)} jobs for query: {query}")
+                    logger.info("JSearch returned %d jobs for query: %s", len(results), query)
 
                     for job_data in results[:limit]:
                         job = self._parse_job_result(job_data)
@@ -110,7 +113,7 @@ class JSearchScraper(BaseScraper):
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling JSearch API: {e}")
+            logger.error("Error calling JSearch API: %s", e)
 
         return jobs
 
@@ -208,7 +211,7 @@ class JSearchScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing JSearch job result: {e}")
+            logger.error("Error parsing JSearch job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:

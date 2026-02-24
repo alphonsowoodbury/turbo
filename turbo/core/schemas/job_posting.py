@@ -1,7 +1,6 @@
 """Pydantic schemas for job posting and search criteria."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict
@@ -16,37 +15,37 @@ class JobPostingBase(BaseModel):
 
     source: str = Field(..., max_length=100, description="Job board source")
     source_url: str = Field(..., description="Original job posting URL")
-    application_url: Optional[str] = Field(None, description="Direct application URL (company's application page)")
-    external_id: Optional[str] = Field(None, max_length=255, description="External platform job ID")
+    application_url: str | None = Field(None, description="Direct application URL (company's application page)")
+    external_id: str | None = Field(None, max_length=255, description="External platform job ID")
 
-    company_id: Optional[UUID] = None
+    company_id: UUID | None = None
     company_name: str = Field(..., max_length=255)
 
     job_title: str = Field(..., max_length=500)
-    job_description: Optional[str] = None
+    job_description: str | None = None
 
-    location: Optional[str] = Field(None, max_length=255)
-    remote_policy: Optional[str] = Field(None, max_length=50)
+    location: str | None = Field(None, max_length=255)
+    remote_policy: str | None = Field(None, max_length=50)
 
-    salary_min: Optional[int] = None
-    salary_max: Optional[int] = None
+    salary_min: int | None = None
+    salary_max: int | None = None
     salary_currency: str = Field(default="USD", max_length=10)
 
-    required_skills: Optional[list[str]] = None
-    preferred_skills: Optional[list[str]] = None
-    required_keywords: Optional[list[str]] = None
+    required_skills: list[str] | None = None
+    preferred_skills: list[str] | None = None
+    required_keywords: list[str] | None = None
 
-    posted_date: Optional[datetime] = None
-    expires_date: Optional[datetime] = None
+    posted_date: datetime | None = None
+    expires_date: datetime | None = None
 
     status: str = Field(default="new", max_length=50)
-    match_score: Optional[float] = None
-    match_reasons: Optional[dict] = None
+    match_score: float | None = None
+    match_reasons: dict | None = None
 
-    interest_level: Optional[int] = Field(None, ge=1, le=5, description="User interest rating 1-5")
-    interest_notes: Optional[str] = None
+    interest_level: int | None = Field(None, ge=1, le=5, description="User interest rating 1-5")
+    interest_notes: str | None = None
 
-    raw_data: Optional[dict] = None
+    raw_data: dict | None = None
 
 
 class JobPostingCreate(JobPostingBase):
@@ -57,13 +56,13 @@ class JobPostingCreate(JobPostingBase):
 class JobPostingUpdate(BaseModel):
     """Schema for updating a job posting."""
 
-    company_id: Optional[UUID] = None
-    application_url: Optional[str] = None
-    status: Optional[str] = None
-    match_score: Optional[float] = None
-    match_reasons: Optional[dict] = None
-    interest_level: Optional[int] = Field(None, ge=1, le=5)
-    interest_notes: Optional[str] = None
+    company_id: UUID | None = None
+    application_url: str | None = None
+    status: str | None = None
+    match_score: float | None = None
+    match_reasons: dict | None = None
+    interest_level: int | None = Field(None, ge=1, le=5)
+    interest_notes: str | None = None
 
     model_config = ConfigDict(extra="forbid")
 
@@ -87,34 +86,34 @@ class SearchCriteriaBase(BaseModel):
     """Base schema for search criteria."""
 
     name: str = Field(..., max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     is_active: bool = True
 
-    job_titles: Optional[list[str]] = None
+    job_titles: list[str] | None = None
 
-    locations: Optional[list[str]] = None
-    excluded_states: Optional[list[str]] = None
+    locations: list[str] | None = None
+    excluded_states: list[str] | None = None
 
-    remote_policies: Optional[list[str]] = None
+    remote_policies: list[str] | None = None
     exclude_onsite: bool = False
 
-    salary_minimum: Optional[int] = None
-    salary_target: Optional[int] = None
+    salary_minimum: int | None = None
+    salary_target: int | None = None
 
-    required_keywords: Optional[list[str]] = None
-    preferred_keywords: Optional[list[str]] = None
-    excluded_keywords: Optional[list[str]] = None
+    required_keywords: list[str] | None = None
+    preferred_keywords: list[str] | None = None
+    excluded_keywords: list[str] | None = None
 
-    company_sizes: Optional[list[str]] = None
-    industries: Optional[list[str]] = None
-    excluded_industries: Optional[list[str]] = None
+    company_sizes: list[str] | None = None
+    industries: list[str] | None = None
+    excluded_industries: list[str] | None = None
 
-    enabled_sources: Optional[list[str]] = None
+    enabled_sources: list[str] | None = None
 
     auto_search_enabled: bool = False
     search_frequency_hours: int = 24
 
-    scoring_weights: Optional[dict] = Field(
+    scoring_weights: dict | None = Field(
         default={"salary": 0.3, "location": 0.2, "keywords": 0.3, "title": 0.2}
     )
 
@@ -127,36 +126,36 @@ class SearchCriteriaCreate(SearchCriteriaBase):
 class SearchCriteriaUpdate(BaseModel):
     """Schema for updating search criteria."""
 
-    name: Optional[str] = Field(None, max_length=255)
-    description: Optional[str] = None
-    is_active: Optional[bool] = None
+    name: str | None = Field(None, max_length=255)
+    description: str | None = None
+    is_active: bool | None = None
 
-    job_titles: Optional[list[str]] = None
-    locations: Optional[list[str]] = None
-    excluded_states: Optional[list[str]] = None
+    job_titles: list[str] | None = None
+    locations: list[str] | None = None
+    excluded_states: list[str] | None = None
 
-    remote_policies: Optional[list[str]] = None
-    exclude_onsite: Optional[bool] = None
+    remote_policies: list[str] | None = None
+    exclude_onsite: bool | None = None
 
-    salary_minimum: Optional[int] = None
-    salary_target: Optional[int] = None
+    salary_minimum: int | None = None
+    salary_target: int | None = None
 
-    required_keywords: Optional[list[str]] = None
-    preferred_keywords: Optional[list[str]] = None
-    excluded_keywords: Optional[list[str]] = None
+    required_keywords: list[str] | None = None
+    preferred_keywords: list[str] | None = None
+    excluded_keywords: list[str] | None = None
 
-    company_sizes: Optional[list[str]] = None
-    industries: Optional[list[str]] = None
-    excluded_industries: Optional[list[str]] = None
+    company_sizes: list[str] | None = None
+    industries: list[str] | None = None
+    excluded_industries: list[str] | None = None
 
-    enabled_sources: Optional[list[str]] = None
+    enabled_sources: list[str] | None = None
 
-    auto_search_enabled: Optional[bool] = None
-    search_frequency_hours: Optional[int] = None
-    last_search_at: Optional[datetime] = None
-    next_search_at: Optional[datetime] = None
+    auto_search_enabled: bool | None = None
+    search_frequency_hours: int | None = None
+    last_search_at: datetime | None = None
+    next_search_at: datetime | None = None
 
-    scoring_weights: Optional[dict] = None
+    scoring_weights: dict | None = None
 
     model_config = ConfigDict(extra="forbid")
 
@@ -165,8 +164,8 @@ class SearchCriteriaResponse(SearchCriteriaBase):
     """Schema for search criteria responses."""
 
     id: UUID
-    last_search_at: Optional[datetime] = None
-    next_search_at: Optional[datetime] = None
+    last_search_at: datetime | None = None
+    next_search_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -182,17 +181,17 @@ class JobSearchHistoryBase(BaseModel):
 
     search_criteria_id: UUID
     source: str = Field(..., max_length=100)
-    query_params: Optional[dict] = None
+    query_params: dict | None = None
 
     jobs_found: int = 0
     jobs_matched: int = 0
     jobs_new: int = 0
     jobs_duplicate_exact: int = 0
     jobs_duplicate_fuzzy: int = 0
-    dedup_stats: Optional[dict] = None
+    dedup_stats: dict | None = None
 
     status: str = Field(default="running", max_length=50)
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class JobSearchHistoryCreate(JobSearchHistoryBase):
@@ -205,8 +204,8 @@ class JobSearchHistoryResponse(JobSearchHistoryBase):
 
     id: UUID
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    duration_seconds: Optional[int] = None
+    completed_at: datetime | None = None
+    duration_seconds: int | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -221,8 +220,8 @@ class JobPostingMatchCreate(BaseModel):
 
     job_posting_id: UUID
     search_criteria_id: UUID
-    match_score: Optional[float] = None
-    match_reasons: Optional[dict] = None
+    match_score: float | None = None
+    match_reasons: dict | None = None
 
 
 class JobPostingMatchResponse(BaseModel):
@@ -231,8 +230,8 @@ class JobPostingMatchResponse(BaseModel):
     id: UUID
     job_posting_id: UUID
     search_criteria_id: UUID
-    match_score: Optional[float] = None
-    match_reasons: Optional[dict] = None
+    match_score: float | None = None
+    match_reasons: dict | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -245,9 +244,9 @@ class JobPostingMatchResponse(BaseModel):
 class JobPostingQuery(BaseModel):
     """Schema for querying job postings."""
 
-    status: Optional[str] = None
-    source: Optional[str] = None
-    min_score: Optional[float] = None
+    status: str | None = None
+    source: str | None = None
+    min_score: float | None = None
     limit: int = Field(default=100, ge=1, le=500)
     offset: int = Field(default=0, ge=0)
 
@@ -255,6 +254,6 @@ class JobPostingQuery(BaseModel):
 class SearchCriteriaQuery(BaseModel):
     """Schema for querying search criteria."""
 
-    is_active: Optional[bool] = None
+    is_active: bool | None = None
     limit: int = Field(default=100, ge=1, le=500)
     offset: int = Field(default=0, ge=0)

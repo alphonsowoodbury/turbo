@@ -67,6 +67,6 @@ async def request_implementation(
 
     except IssueNotFoundError:
         raise HTTPException(status_code=404, detail=f"Issue {issue_id} not found")
-    except Exception as e:
-        logger.error(f"Error requesting implementation for issue {issue_id}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("Error requesting implementation for issue %s", issue_id)
+        raise HTTPException(status_code=500, detail="Internal server error")

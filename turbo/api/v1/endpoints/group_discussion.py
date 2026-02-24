@@ -1,5 +1,6 @@
 """Group discussion API endpoints."""
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
@@ -16,6 +17,8 @@ from turbo.core.schemas.group_discussion import (
 from turbo.core.schemas.staff import StaffConversationResponse
 from turbo.core.services import get_webhook_service
 from turbo.utils.exceptions import GroupDiscussionNotFoundError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -217,10 +220,11 @@ async def send_message(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Discussion with id {discussion_id} not found",
         )
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to send group discussion message")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to send message: {str(e)}",
+            detail="Failed to send message",
         )
 
 

@@ -39,8 +39,7 @@ dependencies = [
     "asyncpg>=0.28.0",
     "greenlet>=3.0.0",
 
-    # Web UI
-    "streamlit>=1.28.0",
+    # Web / Templating
     "pandas>=2.0.0",
     "plotly>=5.17.0",
     "jinja2>=3.1.0",
@@ -290,7 +289,6 @@ testpaths = ["tests"]
 filterwarnings = [
     "error",
     "ignore::UserWarning",
-    "ignore::DeprecationWarning:streamlit.*",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",

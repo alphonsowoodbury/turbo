@@ -1,12 +1,15 @@
 """USAJobs API integration for US federal government jobs."""
 
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional
 
 import aiohttp
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class USAJobsScraper(BaseScraper):
@@ -93,7 +96,7 @@ class USAJobsScraper(BaseScraper):
                 async with session.get(url, params=params, headers=headers) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"USAJobs API error ({response.status}): {error_text}")
+                        logger.warning("USAJobs API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
@@ -102,7 +105,7 @@ class USAJobsScraper(BaseScraper):
                     search_result = data.get("SearchResult", {})
                     results = search_result.get("SearchResultItems", [])
 
-                    print(f"USAJobs returned {len(results)} jobs for query: {keyword_query}")
+                    logger.info("USAJobs returned %d jobs for query: %s", len(results), keyword_query)
 
                     for item in results[:limit]:
                         job = self._parse_job_result(item)
@@ -110,7 +113,7 @@ class USAJobsScraper(BaseScraper):
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling USAJobs API: {e}")
+            logger.error("Error calling USAJobs API: %s", e)
 
         return jobs
 
@@ -237,7 +240,7 @@ class USAJobsScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing USAJobs job result: {e}")
+            logger.error("Error parsing USAJobs job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:

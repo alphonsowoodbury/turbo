@@ -1,5 +1,6 @@
 """Knowledge Graph API endpoints."""
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -13,6 +14,8 @@ from turbo.core.schemas.graph import (
 )
 from turbo.core.services.graph import GraphService
 from turbo.utils.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -66,10 +69,11 @@ async def search_graph(
         results = await graph_service.search(query)
         return results
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Graph search failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Search failed: {str(e)}",
+            detail="Search failed",
         )
     finally:
         await graph_service.close()
@@ -117,10 +121,11 @@ async def get_related_entities(
 
         return related
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get related entities")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get related entities: {str(e)}",
+            detail="Failed to get related entities",
         )
     finally:
         await graph_service.close()
@@ -170,10 +175,11 @@ async def index_entity(
         result = await graph_service.add_episode(node_data)
         return result
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Graph indexing failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Indexing failed: {str(e)}",
+            detail="Indexing failed",
         )
     finally:
         await graph_service.close()
@@ -208,10 +214,11 @@ async def get_graph_stats(
         stats = await graph_service.get_statistics()
         return stats
 
-    except Exception as e:
+    except Exception:
+        logger.exception("Failed to get graph statistics")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get statistics: {str(e)}",
+            detail="Failed to get statistics",
         )
     finally:
         await graph_service.close()
@@ -238,11 +245,12 @@ async def check_graph_health(
     try:
         health = await graph_service.health_check()
         return health
-    except Exception as e:
+    except Exception:
+        logger.exception("Graph health check failed")
         return {
             "status": "unhealthy",
             "connected": False,
-            "error": str(e),
+            "error": "Service unavailable",
         }
     finally:
         await graph_service.close()

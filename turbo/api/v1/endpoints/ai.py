@@ -1,5 +1,6 @@
 """AI execution endpoints."""
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,6 +19,8 @@ from turbo.core.services.issue import IssueService
 from turbo.core.services.project import ProjectService
 from turbo.core.services.initiative import InitiativeService
 from turbo.core.services.milestone import MilestoneService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -78,8 +81,9 @@ async def execute_ai_request(
             error=result.get("error")
         )
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("AI execution failed")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/models")
@@ -122,5 +126,6 @@ async def ai_health_check() -> dict[str, str]:
         # Try to list models
         client.list()
         return {"status": "healthy", "service": "ollama"}
-    except Exception as e:
-        return {"status": "unhealthy", "error": str(e)}
+    except Exception:
+        logger.exception("AI health check failed")
+        return {"status": "unhealthy", "error": "Service unavailable"}

@@ -1,10 +1,10 @@
 """Pydantic schemas for Literature model."""
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 LiteratureType = Literal["article", "podcast", "book", "research_paper"]
@@ -15,22 +15,22 @@ class LiteratureBase(BaseModel):
 
     type: LiteratureType
     title: str = Field(..., max_length=500)
-    url: Optional[str] = Field(None, max_length=2048)
+    url: str | None = Field(None, max_length=2048)
     content: str
-    summary: Optional[str] = None
-    author: Optional[str] = Field(None, max_length=255)
-    source: Optional[str] = Field(None, max_length=255)
-    feed_url: Optional[str] = Field(None, max_length=2048)
-    published_at: Optional[datetime] = None
-    tags: Optional[str] = Field(None, max_length=500)
-    isbn: Optional[str] = Field(None, max_length=20)
-    doi: Optional[str] = Field(None, max_length=255)
-    duration: Optional[int] = None
-    audio_url: Optional[str] = Field(None, max_length=2048)
+    summary: str | None = None
+    author: str | None = Field(None, max_length=255)
+    source: str | None = Field(None, max_length=255)
+    feed_url: str | None = Field(None, max_length=2048)
+    published_at: datetime | None = None
+    tags: str | None = Field(None, max_length=500)
+    isbn: str | None = Field(None, max_length=20)
+    doi: str | None = Field(None, max_length=255)
+    duration: int | None = None
+    audio_url: str | None = Field(None, max_length=2048)
     is_read: bool = False
     is_favorite: bool = False
     is_archived: bool = False
-    progress: Optional[int] = None
+    progress: int | None = None
 
 
 class LiteratureCreate(LiteratureBase):
@@ -42,24 +42,24 @@ class LiteratureCreate(LiteratureBase):
 class LiteratureUpdate(BaseModel):
     """Schema for updating Literature."""
 
-    type: Optional[LiteratureType] = None
-    title: Optional[str] = Field(None, max_length=500)
-    url: Optional[str] = Field(None, max_length=2048)
-    content: Optional[str] = None
-    summary: Optional[str] = None
-    author: Optional[str] = Field(None, max_length=255)
-    source: Optional[str] = Field(None, max_length=255)
-    feed_url: Optional[str] = Field(None, max_length=2048)
-    published_at: Optional[datetime] = None
-    tags: Optional[str] = Field(None, max_length=500)
-    isbn: Optional[str] = Field(None, max_length=20)
-    doi: Optional[str] = Field(None, max_length=255)
-    duration: Optional[int] = None
-    audio_url: Optional[str] = Field(None, max_length=2048)
-    is_read: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
-    progress: Optional[int] = None
+    type: LiteratureType | None = None
+    title: str | None = Field(None, max_length=500)
+    url: str | None = Field(None, max_length=2048)
+    content: str | None = None
+    summary: str | None = None
+    author: str | None = Field(None, max_length=255)
+    source: str | None = Field(None, max_length=255)
+    feed_url: str | None = Field(None, max_length=2048)
+    published_at: datetime | None = None
+    tags: str | None = Field(None, max_length=500)
+    isbn: str | None = Field(None, max_length=20)
+    doi: str | None = Field(None, max_length=255)
+    duration: int | None = None
+    audio_url: str | None = Field(None, max_length=2048)
+    is_read: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
+    progress: int | None = None
 
 
 class LiteratureResponse(LiteratureBase):
@@ -69,10 +69,7 @@ class LiteratureResponse(LiteratureBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        """Pydantic config."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FeedURL(BaseModel):
@@ -84,10 +81,10 @@ class FeedURL(BaseModel):
 class LiteratureFilter(BaseModel):
     """Schema for filtering literature."""
 
-    type: Optional[LiteratureType] = None
-    source: Optional[str] = None
-    is_read: Optional[bool] = None
-    is_favorite: Optional[bool] = None
-    is_archived: Optional[bool] = None
+    type: LiteratureType | None = None
+    source: str | None = None
+    is_read: bool | None = None
+    is_favorite: bool | None = None
+    is_archived: bool | None = None
     limit: int = Field(100, ge=1, le=1000)
     offset: int = Field(0, ge=0)

@@ -185,8 +185,8 @@ async def update_claude_api_key(
                 "http://turbo-claude-code:9000/reload",
                 json={"api_key": api_key}
             )
-    except Exception as e:
-        print(f"Could not notify Claude service: {e}")
+    except Exception:
+        pass  # Claude service notification is best-effort
 
     return {
         "success": True,
@@ -245,34 +245,14 @@ async def get_claude_status():
                 "authenticated": health.get("authenticated", False),
                 "subagents_count": config.get("subagents_count", 0)
             }
-    except Exception as e:
+    except Exception:
         return {
             "available": False,
-            "error": str(e)
+            "error": "Claude service unavailable"
         }
 
 
-@router.get("/claude/api-key/raw")
-async def get_claude_api_key_raw(
-    db: AsyncSession = Depends(get_db_session)
-):
-    """Get unmasked API key for internal services only.
 
-    WARNING: This endpoint should only be accessible from internal Docker network.
-    """
-    from sqlalchemy import select
-
-    # Check database first
-    stmt = select(Setting).where(Setting.key == "anthropic_api_key")
-    result = await db.execute(stmt)
-    setting = result.scalar_one_or_none()
-
-    if setting and setting.value.get("api_key"):
-        return {"api_key": setting.value.get("api_key")}
-
-    # Fallback to environment
-    env_key = os.getenv("ANTHROPIC_API_KEY")
-    if env_key and not env_key.startswith("your_api_key"):
-        return {"api_key": env_key}
-
-    return {"api_key": None}
+# REMOVED: /claude/api-key/raw endpoint
+# Previously exposed unmasked API keys over HTTP with no authentication.
+# Internal services should read ANTHROPIC_API_KEY from their own environment.

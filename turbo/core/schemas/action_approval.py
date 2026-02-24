@@ -1,10 +1,10 @@
 """Action Approval Pydantic Schemas"""
 
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from turbo.core.models.action_approval import ActionStatus, ActionRiskLevel
 
@@ -14,30 +14,30 @@ class ActionApprovalBase(BaseModel):
     action_type: str = Field(..., description="Type of action (e.g., 'update_issue', 'close_issue')")
     action_description: str = Field(..., description="Human-readable description of the action")
     risk_level: ActionRiskLevel = Field(default=ActionRiskLevel.MEDIUM, description="Risk level of the action")
-    action_params: Dict[str, Any] = Field(..., description="Parameters for the action")
+    action_params: dict[str, Any] = Field(..., description="Parameters for the action")
     entity_type: str = Field(..., description="Type of entity (issue, project, etc.)")
     entity_id: UUID = Field(..., description="UUID of the entity")
-    entity_title: Optional[str] = Field(None, description="Title of the entity for display")
-    ai_reasoning: Optional[str] = Field(None, description="AI's reasoning for suggesting this action")
-    ai_comment_id: Optional[UUID] = Field(None, description="Related AI comment ID")
+    entity_title: str | None = Field(None, description="Title of the entity for display")
+    ai_reasoning: str | None = Field(None, description="AI's reasoning for suggesting this action")
+    ai_comment_id: UUID | None = Field(None, description="Related AI comment ID")
 
 
 class ActionApprovalCreate(ActionApprovalBase):
     """Schema for creating a new action approval request."""
     auto_execute: bool = Field(default=False, description="Whether action can auto-execute")
-    expires_at: Optional[datetime] = Field(None, description="Optional expiration time")
+    expires_at: datetime | None = Field(None, description="Optional expiration time")
 
 
 class ActionApprovalUpdate(BaseModel):
     """Schema for updating an action approval."""
-    status: Optional[ActionStatus] = None
-    approved_by: Optional[str] = None
-    denied_by: Optional[str] = None
-    denial_reason: Optional[str] = None
-    execution_result: Optional[Dict[str, Any]] = None
-    execution_error: Optional[str] = None
-    executed_by_subagent: Optional[bool] = None
-    subagent_name: Optional[str] = None
+    status: ActionStatus | None = None
+    approved_by: str | None = None
+    denied_by: str | None = None
+    denial_reason: str | None = None
+    execution_result: dict[str, Any] | None = None
+    execution_error: str | None = None
+    executed_by_subagent: bool | None = None
+    subagent_name: str | None = None
 
 
 class ActionApprovalResponse(ActionApprovalBase):
@@ -47,27 +47,26 @@ class ActionApprovalResponse(ActionApprovalBase):
     auto_execute: bool
 
     # Approval/denial
-    approved_at: Optional[datetime] = None
-    approved_by: Optional[str] = None
-    denied_at: Optional[datetime] = None
-    denied_by: Optional[str] = None
-    denial_reason: Optional[str] = None
+    approved_at: datetime | None = None
+    approved_by: str | None = None
+    denied_at: datetime | None = None
+    denied_by: str | None = None
+    denial_reason: str | None = None
 
     # Execution
-    executed_at: Optional[datetime] = None
-    execution_result: Optional[Dict[str, Any]] = None
-    execution_error: Optional[str] = None
+    executed_at: datetime | None = None
+    execution_result: dict[str, Any] | None = None
+    execution_error: str | None = None
     executed_by_subagent: bool
-    subagent_name: Optional[str] = None
-    auto_executed_at: Optional[datetime] = None
+    subagent_name: str | None = None
+    auto_executed_at: datetime | None = None
 
     # Timestamps
     created_at: datetime
     updated_at: datetime
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ActionApprovalListResponse(BaseModel):
@@ -89,4 +88,4 @@ class ApproveActionRequest(BaseModel):
 class DenyActionRequest(BaseModel):
     """Schema for denying an action."""
     denied_by: str = Field(..., description="User who is denying")
-    denial_reason: Optional[str] = Field(None, description="Reason for denial")
+    denial_reason: str | None = Field(None, description="Reason for denial")

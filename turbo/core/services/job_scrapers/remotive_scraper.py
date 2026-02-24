@@ -1,6 +1,7 @@
 """Remotive API integration for remote jobs."""
 
 import asyncio
+import logging
 import re
 from datetime import datetime
 from typing import Optional
@@ -9,6 +10,8 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from turbo.core.services.job_scrapers.base_scraper import BaseScraper, ScrapedJob
+
+logger = logging.getLogger(__name__)
 
 
 class RemotiveScraper(BaseScraper):
@@ -60,7 +63,7 @@ class RemotiveScraper(BaseScraper):
                 async with session.get(url) as response:
                     if response.status != 200:
                         error_text = await response.text()
-                        print(f"Remotive API error ({response.status}): {error_text}")
+                        logger.warning("Remotive API error (%d): %s", response.status, error_text)
                         return jobs
 
                     data = await response.json()
@@ -80,7 +83,7 @@ class RemotiveScraper(BaseScraper):
                                for kw in keywords) if keywords else True:
                             filtered_jobs.append(job_data)
 
-                    print(f"Remotive returned {len(filtered_jobs)} jobs matching: {query}")
+                    logger.info("Remotive returned %d jobs matching: %s", len(filtered_jobs), query)
 
                     # Parse jobs and extract application URLs asynchronously
                     for job_data in filtered_jobs[:limit]:
@@ -93,12 +96,12 @@ class RemotiveScraper(BaseScraper):
                                     job_data
                                 )
                             except Exception as e:
-                                print(f"Failed to extract application URL for {job.job_title}: {e}")
+                                logger.warning("Failed to extract application URL for %s: %s", job.job_title, e)
 
                             jobs.append(job)
 
         except Exception as e:
-            print(f"Error calling Remotive API: {e}")
+            logger.error("Error calling Remotive API: %s", e)
 
         return jobs
 
@@ -178,7 +181,7 @@ class RemotiveScraper(BaseScraper):
             )
 
         except Exception as e:
-            print(f"Error parsing Remotive job result: {e}")
+            logger.error("Error parsing Remotive job result: %s", e)
             return None
 
     async def get_job_details(self, job_url: str) -> Optional[ScrapedJob]:
@@ -211,7 +214,7 @@ class RemotiveScraper(BaseScraper):
             async with aiohttp.ClientSession() as session:
                 async with session.get(remotive_url, timeout=10) as response:
                     if response.status != 200:
-                        print(f"Failed to fetch Remotive page ({response.status}): {remotive_url}")
+                        logger.warning("Failed to fetch Remotive page (%d): %s", response.status, remotive_url)
                         return None
 
                     html = await response.text()
@@ -248,9 +251,9 @@ class RemotiveScraper(BaseScraper):
                             if btn.get('data-url'):
                                 return btn['data-url']
 
-                    print(f"Could not find apply link in Remotive page: {remotive_url}")
+                    logger.debug("Could not find apply link in Remotive page: %s", remotive_url)
                     return None
 
         except Exception as e:
-            print(f"Error extracting application URL from Remotive page: {e}")
+            logger.error("Error extracting application URL from Remotive page: %s", e)
             return None
