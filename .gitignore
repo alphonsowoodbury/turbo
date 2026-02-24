@@ -63,6 +63,8 @@ logs/
 
 # Backups
 backups/
+scripts/backups/
+*.sql.bak
 
 # Build artifacts
 *.pyc
@@ -79,3 +81,10 @@ node_modules/
 *.key
 secrets/
 credentials/
+
+# Machine-specific config
+mcp.json
+
+# Docs build output
+docs/dist/
+site/
