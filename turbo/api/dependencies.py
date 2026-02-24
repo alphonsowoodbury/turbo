@@ -13,10 +13,6 @@ from turbo.core.repositories import (
     ProjectRepository,
     TagRepository,
 )
-from turbo.core.repositories.company import CompanyRepository
-from turbo.core.repositories.job_application import JobApplicationRepository
-from turbo.core.repositories.network_contact import NetworkContactRepository
-from turbo.core.repositories.resume import ResumeRepository, ResumeSectionRepository
 from turbo.core.repositories.work_log import WorkLogRepository
 from turbo.core.repositories.note import NoteRepository
 from turbo.core.repositories.mentor import MentorRepository
@@ -32,9 +28,6 @@ from turbo.core.services import (
     ProjectService,
     TagService,
 )
-from turbo.core.services.company import CompanyService
-from turbo.core.services.job_application import JobApplicationService
-from turbo.core.services.network_contact import NetworkContactService
 from turbo.core.services.note import NoteService
 from turbo.core.services.mentor import MentorService
 from turbo.core.services.mentor_context import MentorContextService
@@ -277,92 +270,17 @@ def get_group_discussion_service(
     return GroupDiscussionService(discussion_repo, conversation_repo)
 
 
-# Career management repository dependencies
-def get_company_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> CompanyRepository:
-    """Get company repository."""
-    return CompanyRepository(session)
-
-
-def get_job_application_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> JobApplicationRepository:
-    """Get job application repository."""
-    return JobApplicationRepository(session)
-
-
-def get_network_contact_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> NetworkContactRepository:
-    """Get network contact repository."""
-    return NetworkContactRepository(session)
-
-
-def get_resume_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> ResumeRepository:
-    """Get resume repository."""
-    return ResumeRepository(session)
-
-
-def get_resume_section_repository(
-    session: AsyncSession = Depends(get_db_session),
-) -> ResumeSectionRepository:
-    """Get resume section repository."""
-    return ResumeSectionRepository(session)
-
-
-# Career management service dependencies
-def get_company_service(
-    company_repo: CompanyRepository = Depends(get_company_repository),
-    tag_repo: TagRepository = Depends(get_tag_repository),
-) -> CompanyService:
-    """Get company service."""
-    return CompanyService(company_repo, tag_repo)
-
-
-def get_job_application_service(
-    job_application_repo: JobApplicationRepository = Depends(get_job_application_repository),
-    company_repo: CompanyRepository = Depends(get_company_repository),
-    resume_repo: ResumeRepository = Depends(get_resume_repository),
-    project_repo: ProjectRepository = Depends(get_project_repository),
-    tag_repo: TagRepository = Depends(get_tag_repository),
-) -> JobApplicationService:
-    """Get job application service."""
-    return JobApplicationService(
-        job_application_repo, company_repo, resume_repo, project_repo, tag_repo
-    )
-
-
-def get_network_contact_service(
-    network_contact_repo: NetworkContactRepository = Depends(get_network_contact_repository),
-    company_repo: CompanyRepository = Depends(get_company_repository),
-    tag_repo: TagRepository = Depends(get_tag_repository),
-) -> NetworkContactService:
-    """Get network contact service."""
-    return NetworkContactService(network_contact_repo, company_repo, tag_repo)
-
-
-# Mentor service dependencies (after career repos are defined)
+# Mentor service dependencies
 def get_mentor_context_service(
     project_repo: ProjectRepository = Depends(get_project_repository),
     issue_repo: IssueRepository = Depends(get_issue_repository),
     document_repo: DocumentRepository = Depends(get_document_repository),
-    company_repo: CompanyRepository = Depends(get_company_repository),
-    job_application_repo: JobApplicationRepository = Depends(get_job_application_repository),
-    network_contact_repo: NetworkContactRepository = Depends(get_network_contact_repository),
-    resume_repo: ResumeRepository = Depends(get_resume_repository),
 ) -> MentorContextService:
     """Get mentor context service."""
     return MentorContextService(
         project_repo,
         issue_repo,
         document_repo,
-        company_repo,
-        job_application_repo,
-        network_contact_repo,
-        resume_repo,
     )
 
 
@@ -373,39 +291,3 @@ def get_mentor_service(
 ) -> MentorService:
     """Get mentor service."""
     return MentorService(mentor_repo, conversation_repo, context_service)
-
-
-# Email template service dependencies
-def get_email_template_service(
-    document_repo: DocumentRepository = Depends(get_document_repository),
-    project_repo: ProjectRepository = Depends(get_project_repository),
-    key_generator: KeyGeneratorService = Depends(get_key_generator_service),
-):
-    """Get email template service."""
-    from turbo.core.services.email_template import EmailTemplateService
-    return EmailTemplateService(document_repo, project_repo, key_generator)
-
-
-# Resume generation service dependencies
-def get_resume_generation_service(
-    resume_repo: ResumeRepository = Depends(get_resume_repository),
-    section_repo: ResumeSectionRepository = Depends(get_resume_section_repository),
-    job_app_repo: JobApplicationRepository = Depends(get_job_application_repository),
-):
-    """Get resume generation service."""
-    from turbo.core.services.resume_tailoring import ResumeTailoringService
-    from turbo.core.services.resume_generation import ResumeGenerationService
-
-    # Create tailoring service
-    tailoring_service = ResumeTailoringService(
-        resume_repository=resume_repo,
-        job_application_repository=job_app_repo,
-    )
-
-    # Create generation service
-    return ResumeGenerationService(
-        resume_repository=resume_repo,
-        section_repository=section_repo,
-        tailoring_service=tailoring_service,
-        job_application_repository=job_app_repo,
-    )

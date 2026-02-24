@@ -8,7 +8,6 @@ from turbo.core.repositories.issue import IssueRepository
 from turbo.core.repositories.issue_dependency import IssueDependencyRepository
 from turbo.core.repositories.milestone import MilestoneRepository
 from turbo.core.repositories.project import ProjectRepository
-from turbo.core.repositories.skill import SkillRepository
 from turbo.core.repositories.tag import TagRepository
 
 __all__ = [
@@ -20,6 +19,5 @@ __all__ = [
     "IssueDependencyRepository",
     "MilestoneRepository",
     "ProjectRepository",
-    "SkillRepository",
     "TagRepository",
 ]

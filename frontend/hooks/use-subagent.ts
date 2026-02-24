@@ -175,16 +175,6 @@ export function useSubagentHelpers() {
     });
   };
 
-  const optimizeResume = async (resumeId: string, jobDescription?: string) => {
-    return invoke({
-      agent: "career-coach",
-      prompt: jobDescription
-        ? "Analyze this resume against the job description and suggest improvements."
-        : "Review this resume and suggest general improvements.",
-      context: { resume_id: resumeId, job_description: jobDescription },
-    });
-  };
-
   const suggestReadingOrder = async (filters?: Record<string, any>) => {
     return invoke({
       agent: "learning-curator",
@@ -229,7 +219,6 @@ export function useSubagentHelpers() {
     analyzeDocument,
     suggestSchedule,
     findConnections,
-    optimizeResume,
     suggestReadingOrder,
     extractActionItems,
     manageDiscovery,

@@ -311,7 +311,6 @@ function AgentSessionsContent() {
                       <SelectItem value="doc-curator">Doc Curator</SelectItem>
                       <SelectItem value="task-scheduler">Task Scheduler</SelectItem>
                       <SelectItem value="knowledge-connector">Knowledge Connector</SelectItem>
-                      <SelectItem value="career-coach">Career Coach</SelectItem>
                       <SelectItem value="learning-curator">Learning Curator</SelectItem>
                       <SelectItem value="meeting-facilitator">Meeting Facilitator</SelectItem>
                       <SelectItem value="discovery-guide">Discovery Guide</SelectItem>

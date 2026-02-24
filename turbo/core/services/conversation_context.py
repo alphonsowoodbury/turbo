@@ -10,15 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from turbo.core.models.conversation_memory import ConversationMemory, ConversationSummary
 from turbo.core.models.staff_conversation import StaffConversation
-from turbo.core.models.staff import Staff
 from turbo.core.models.issue import Issue
 from turbo.core.models.project import Project
 from turbo.core.models.document import Document
 from turbo.core.models.milestone import Milestone
-from turbo.core.models.job_application import JobApplication
-from turbo.core.models.company import Company
-from turbo.core.models.network_contact import NetworkContact
-from turbo.core.models.resume import Resume
 from turbo.core.services.conversation_memory import ConversationMemoryService
 from turbo.core.services.graph import GraphService
 
@@ -79,7 +74,7 @@ class ConversationContextManager:
                 - key_facts: Important facts from old messages
                 - related_entities: Entities from knowledge graph
                 - memories: Relevant long-term memories
-                - user_context: Active projects, issues, career data (if staff has career capabilities)
+                - user_context: Active projects, issues
                 - total_message_count: Total messages in conversation
         """
         logger.info(f"Building context for {entity_type} {entity_id}")
@@ -156,7 +151,7 @@ class ConversationContextManager:
         )
         logger.info(f"Retrieved {len(memories)} relevant memories")
 
-        # 7. User context (active work and career data for mentors)
+        # 7. User context (active projects and issues)
         user_context = await self._get_user_context(entity_type, entity_id)
 
         # 8. Extract entities mentioned in conversation
@@ -412,7 +407,6 @@ class ConversationContextManager:
     ) -> dict[str, Any]:
         """
         Get user's current work context (active projects, issues).
-        For staff with career capabilities, also includes career data.
 
         Args:
             entity_type: "staff" (mentor is deprecated)
@@ -461,100 +455,6 @@ class ConversationContextManager:
                 }
                 for i in active_issues
             ]
-
-            # For staff with career capabilities, include career data
-            staff_result = await self.db.execute(
-                select(Staff).where(Staff.id == entity_id)
-            )
-            staff = staff_result.scalar_one_or_none()
-
-            if staff and staff.capabilities:
-                # Check if staff has career-related capabilities
-                career_capabilities = [
-                    "career_guidance", "resume_review", "interview_prep",
-                    "salary_negotiation", "job_search_strategy"
-                ]
-                has_career_capability = any(
-                    cap in staff.capabilities for cap in career_capabilities
-                )
-
-                if has_career_capability:
-                    max_items = 20
-
-                    # Include job applications
-                    app_result = await self.db.execute(
-                        select(JobApplication)
-                        .order_by(desc(JobApplication.updated_at))
-                        .limit(max_items)
-                    )
-                    applications = app_result.scalars().all()
-                    context["job_applications"] = [
-                        {
-                            "id": str(a.id),
-                            "position_title": a.position_title,
-                            "company_name": a.company_name,
-                            "status": a.status,
-                            "application_date": a.application_date.isoformat() if a.application_date else None
-                        }
-                        for a in applications
-                    ]
-
-                    # Include resumes
-                    resume_result = await self.db.execute(
-                        select(Resume)
-                        .order_by(desc(Resume.updated_at))
-                        .limit(max_items)
-                    )
-                    resumes = resume_result.scalars().all()
-                    context["resumes"] = [
-                        {
-                            "id": str(r.id),
-                            "title": r.title,
-                            "is_primary": r.is_primary,
-                            "target_role": r.target_role,
-                            "target_company": r.target_company
-                        }
-                        for r in resumes
-                    ]
-
-                    # Include companies
-                    company_result = await self.db.execute(
-                        select(Company)
-                        .order_by(desc(Company.updated_at))
-                        .limit(max_items)
-                    )
-                    companies = company_result.scalars().all()
-                    context["companies"] = [
-                        {
-                            "id": str(c.id),
-                            "name": c.name,
-                            "target_status": c.target_status,
-                            "industry": c.industry,
-                            "application_count": c.application_count
-                        }
-                        for c in companies
-                    ]
-
-                    # Include contacts
-                    contact_result = await self.db.execute(
-                        select(NetworkContact)
-                        .where(NetworkContact.is_active == True)
-                        .order_by(desc(NetworkContact.updated_at))
-                        .limit(max_items)
-                    )
-                    contacts = contact_result.scalars().all()
-                    context["network_contacts"] = [
-                        {
-                            "id": str(c.id),
-                            "name": f"{c.first_name} {c.last_name}",
-                            "current_title": c.current_title,
-                            "current_company": c.current_company,
-                            "contact_type": c.contact_type,
-                            "relationship_strength": c.relationship_strength,
-                            "referral_status": c.referral_status
-                        }
-                        for c in contacts
-                    ]
 
             return context
 

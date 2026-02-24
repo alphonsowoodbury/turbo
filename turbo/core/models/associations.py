@@ -187,24 +187,6 @@ literature_tags = Table(
     ),
 )
 
-# Many-to-many association table for skills and tags
-skill_tags = Table(
-    "skill_tags",
-    Base.metadata,
-    Column(
-        "skill_id",
-        UUID(as_uuid=True),
-        ForeignKey("skills.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
 # Many-to-many association table for notes and tags
 note_tags = Table(
     "note_tags",
@@ -213,96 +195,6 @@ note_tags = Table(
         "note_id",
         UUID(as_uuid=True),
         ForeignKey("notes.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-# Many-to-many association table for companies and tags
-company_tags = Table(
-    "company_tags",
-    Base.metadata,
-    Column(
-        "company_id",
-        UUID(as_uuid=True),
-        ForeignKey("companies.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-# Many-to-many association table for job_applications and tags
-job_application_tags = Table(
-    "job_application_tags",
-    Base.metadata,
-    Column(
-        "job_application_id",
-        UUID(as_uuid=True),
-        ForeignKey("job_applications.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-# Many-to-many association table for network_contacts and tags
-network_contact_tags = Table(
-    "network_contact_tags",
-    Base.metadata,
-    Column(
-        "network_contact_id",
-        UUID(as_uuid=True),
-        ForeignKey("network_contacts.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-# Many-to-many association table for work_experiences and tags
-work_experience_tags = Table(
-    "work_experience_tags",
-    Base.metadata,
-    Column(
-        "work_experience_id",
-        UUID(as_uuid=True),
-        ForeignKey("work_experiences.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-    Column(
-        "tag_id",
-        UUID(as_uuid=True),
-        ForeignKey("tags.id", ondelete="CASCADE"),
-        primary_key=True,
-    ),
-)
-
-# Many-to-many association table for achievement_facts and tags
-achievement_fact_tags = Table(
-    "achievement_fact_tags",
-    Base.metadata,
-    Column(
-        "achievement_fact_id",
-        UUID(as_uuid=True),
-        ForeignKey("achievement_facts.id", ondelete="CASCADE"),
         primary_key=True,
     ),
     Column(

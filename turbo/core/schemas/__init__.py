@@ -66,12 +66,6 @@ from turbo.core.schemas.saved_filter import (
     SavedFilterResponse,
     SavedFilterUpdate,
 )
-from turbo.core.schemas.skill import (
-    SkillCreate,
-    SkillResponse,
-    SkillSummary,
-    SkillUpdate,
-)
 from turbo.core.schemas.tag import (
     TagCreate,
     TagResponse,
@@ -124,10 +118,6 @@ __all__ = [
     "SavedFilterCreate",
     "SavedFilterResponse",
     "SavedFilterUpdate",
-    "SkillCreate",
-    "SkillResponse",
-    "SkillSummary",
-    "SkillUpdate",
     "TagCreate",
     "TagResponse",
     "TagUpdate",

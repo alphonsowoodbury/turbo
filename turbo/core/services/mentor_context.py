@@ -7,10 +7,6 @@ from turbo.core.models.mentor import Mentor
 from turbo.core.repositories.document import DocumentRepository
 from turbo.core.repositories.issue import IssueRepository
 from turbo.core.repositories.project import ProjectRepository
-from turbo.core.repositories.company import CompanyRepository
-from turbo.core.repositories.job_application import JobApplicationRepository
-from turbo.core.repositories.network_contact import NetworkContactRepository
-from turbo.core.repositories.resume import ResumeRepository
 
 
 class MentorContextService:
@@ -21,18 +17,10 @@ class MentorContextService:
         project_repository: ProjectRepository,
         issue_repository: IssueRepository,
         document_repository: DocumentRepository,
-        company_repository: CompanyRepository | None = None,
-        job_application_repository: JobApplicationRepository | None = None,
-        network_contact_repository: NetworkContactRepository | None = None,
-        resume_repository: ResumeRepository | None = None,
     ) -> None:
         self._project_repository = project_repository
         self._issue_repository = issue_repository
         self._document_repository = document_repository
-        self._company_repository = company_repository
-        self._job_application_repository = job_application_repository
-        self._network_contact_repository = network_contact_repository
-        self._resume_repository = resume_repository
 
     async def compile_workspace_context(
         self, mentor: Mentor
@@ -97,64 +85,6 @@ class MentorContextService:
                 for d in documents
             ]
 
-        # Get job applications if enabled (career data)
-        if prefs.get("include_applications", False) and self._job_application_repository:
-            applications = await self._job_application_repository.get_all(limit=max_items)
-            context["applications"] = [
-                {
-                    "id": str(a.id),
-                    "position_title": a.position_title,
-                    "company_name": a.company_name,
-                    "status": a.status,
-                    "application_date": a.application_date.isoformat() if a.application_date else None,
-                    "notes": a.notes[:200] + "..." if a.notes and len(a.notes) > 200 else a.notes,
-                }
-                for a in applications
-            ]
-
-        # Get companies if enabled (career data)
-        if prefs.get("include_companies", False) and self._company_repository:
-            companies = await self._company_repository.get_all(limit=max_items)
-            context["companies"] = [
-                {
-                    "id": str(c.id),
-                    "name": c.name,
-                    "industry": c.industry,
-                    "size": c.size,
-                    "notes": c.notes[:200] + "..." if c.notes and len(c.notes) > 200 else c.notes,
-                }
-                for c in companies
-            ]
-
-        # Get network contacts if enabled (career data)
-        if prefs.get("include_contacts", False) and self._network_contact_repository:
-            contacts = await self._network_contact_repository.get_all(limit=max_items)
-            context["contacts"] = [
-                {
-                    "id": str(c.id),
-                    "name": c.name,
-                    "title": c.title,
-                    "company": c.company,
-                    "relationship": c.relationship,
-                    "last_contact_date": c.last_contact_date.isoformat() if c.last_contact_date else None,
-                }
-                for c in contacts
-            ]
-
-        # Get resumes if enabled (career data)
-        if prefs.get("include_resumes", False) and self._resume_repository:
-            resumes = await self._resume_repository.get_all(limit=5)  # Limit resumes
-            context["resumes"] = [
-                {
-                    "id": str(r.id),
-                    "title": r.title,
-                    "target_role": r.target_role,
-                    "target_company": r.target_company,
-                    "is_primary": r.is_primary,
-                }
-                for r in resumes
-            ]
-
         return context
 
     async def format_context_as_markdown(self, context: dict) -> str:
@@ -209,62 +139,6 @@ class MentorContextService:
                 md_lines.extend([
                     f"### {d['title']} ({d['type']})",
                     f"{d['summary']}",
-                    ""
-                ])
-
-        # Job applications section (career data)
-        if applications := context.get("applications"):
-            md_lines.extend([
-                "## Job Applications",
-                ""
-            ])
-            for a in applications:
-                md_lines.extend([
-                    f"### {a['position_title']} at {a['company_name']}",
-                    f"**Status:** {a['status']} | **Applied:** {a['application_date'] or 'N/A'}",
-                    f"{a['notes'] or 'No notes'}",
-                    ""
-                ])
-
-        # Companies section (career data)
-        if companies := context.get("companies"):
-            md_lines.extend([
-                "## Target Companies",
-                ""
-            ])
-            for c in companies:
-                md_lines.extend([
-                    f"### {c['name']}",
-                    f"**Industry:** {c['industry'] or 'N/A'} | **Size:** {c['size'] or 'N/A'}",
-                    f"{c['notes'] or 'No research notes'}",
-                    ""
-                ])
-
-        # Network contacts section (career data)
-        if contacts := context.get("contacts"):
-            md_lines.extend([
-                "## Network Contacts",
-                ""
-            ])
-            for c in contacts:
-                md_lines.extend([
-                    f"### {c['name']} - {c['title'] or 'N/A'}",
-                    f"**Company:** {c['company'] or 'N/A'} | **Relationship:** {c['relationship'] or 'N/A'}",
-                    f"**Last Contact:** {c['last_contact_date'] or 'Never'}",
-                    ""
-                ])
-
-        # Resumes section (career data)
-        if resumes := context.get("resumes"):
-            md_lines.extend([
-                "## Resumes",
-                ""
-            ])
-            for r in resumes:
-                primary_marker = " (PRIMARY)" if r['is_primary'] else ""
-                md_lines.extend([
-                    f"### {r['title']}{primary_marker}",
-                    f"**Target Role:** {r['target_role'] or 'General'} | **Target Company:** {r['target_company'] or 'Any'}",
                     ""
                 ])
 

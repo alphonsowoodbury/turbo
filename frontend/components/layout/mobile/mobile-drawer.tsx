@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -8,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useMobileNav } from "@/hooks/use-mobile-nav";
-import { useWorkspace } from "@/hooks/use-workspace";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import {
   LayoutDashboard,
@@ -25,17 +23,6 @@ import {
   FileText,
   FileCode2,
   GitBranch,
-  Briefcase,
-  Search,
-  FileUser,
-  Users,
-  Package,
-  DollarSign,
-  FileCheck,
-  User,
-  Award,
-  Sparkles,
-  Handshake,
   BookMarked,
   Radio,
   Compass,
@@ -62,29 +49,6 @@ interface NavItem {
 export function MobileDrawer() {
   const pathname = usePathname();
   const { isDrawerOpen, closeDrawer, expandedSections, toggleSection } = useMobileNav();
-  const { workspace } = useWorkspace();
-
-  // Workspace-aware work submenu items
-  const workSubmenuItems: NavItem[] = workspace === "work" ? [
-    { href: "/work/resumes", icon: FileUser, label: "Resumes" },
-    { href: "/work/jobs", icon: Briefcase, label: "Jobs" },
-    { href: "/work/experiences", icon: Award, label: "Experiences" },
-    { href: "/work/skills", icon: Sparkles, label: "Skills" },
-    { href: "/work/network", icon: Handshake, label: "Network" },
-  ] : workspace === "freelance" ? [
-    { href: "/work/resumes", icon: FileUser, label: "Resumes" },
-    { href: "/work/freelance", icon: Package, label: "Freelance" },
-    { href: "/work/clients", icon: Users, label: "Clients" },
-    { href: "/work/invoices", icon: DollarSign, label: "Invoices" },
-    { href: "/work/proposals", icon: FileCheck, label: "Proposals" },
-    { href: "/work/contracts", icon: Package, label: "Contracts" },
-  ] : [
-    { href: "/work/job-search", icon: Search, label: "Job Search" },
-    { href: "/work/resumes", icon: FileUser, label: "Resumes" },
-    { href: "/work/applications", icon: FileText, label: "Applications" },
-    { href: "/work/jobs", icon: Briefcase, label: "Jobs" },
-    { href: "/work/network", icon: Handshake, label: "Network" },
-  ];
 
   const sections: NavSection[] = [
     {
@@ -109,13 +73,6 @@ export function MobileDrawer() {
       items: [
         { href: "/agents/sessions", icon: Activity, label: "Sessions" },
       ],
-    },
-    {
-      id: "work",
-      label: "Work",
-      icon: Briefcase,
-      href: "/work",
-      items: workSubmenuItems,
     },
     {
       id: "literature",
