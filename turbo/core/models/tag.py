@@ -6,18 +6,12 @@ from sqlalchemy.orm import relationship
 
 from turbo.core.database.base import Base
 from turbo.core.models.associations import (
-    achievement_fact_tags,
-    company_tags,
     initiative_tags,
     issue_tags,
-    job_application_tags,
     literature_tags,
     milestone_tags,
-    network_contact_tags,
     note_tags,
     project_tags,
-    skill_tags,
-    work_experience_tags,
 )
 
 
@@ -54,32 +48,8 @@ class Tag(Base):
         "Literature", secondary=literature_tags, back_populates="tags", lazy="select"
     )
 
-    skills = relationship(
-        "Skill", secondary=skill_tags, back_populates="tags", lazy="select"
-    )
-
     notes = relationship(
         "Note", secondary=note_tags, back_populates="tags", lazy="select"
-    )
-
-    companies = relationship(
-        "Company", secondary=company_tags, back_populates="tags", lazy="select"
-    )
-
-    job_applications = relationship(
-        "JobApplication", secondary=job_application_tags, back_populates="tags", lazy="select"
-    )
-
-    network_contacts = relationship(
-        "NetworkContact", secondary=network_contact_tags, back_populates="tags", lazy="select"
-    )
-
-    work_experiences = relationship(
-        "WorkExperience", secondary=work_experience_tags, back_populates="tags", lazy="select"
-    )
-
-    achievement_facts = relationship(
-        "AchievementFact", secondary=achievement_fact_tags, back_populates="tags", lazy="select"
     )
 
     def __repr__(self) -> str:
