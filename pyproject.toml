@@ -141,6 +141,11 @@ mcp = [
     # Model Context Protocol for Claude Code integration
     "mcp>=1.0.0",
 ]
+agent = [
+    # Claude Agent SDK for autonomous agent capabilities
+    "claude-agent-sdk>=0.1.0",
+    "httpx>=0.25.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/username/turbo"
@@ -150,6 +155,7 @@ Issues = "https://github.com/username/turbo/issues"
 
 [project.scripts]
 turbo = "turbo.cli.main:cli"
+turbo-agent = "turbo.agent.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
