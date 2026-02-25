@@ -45,10 +45,16 @@ class TagService:
         return None
 
     async def get_all_tags(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[TagResponse]:
         """Get all tags with optional pagination."""
-        tags = await self._tag_repository.get_all(limit=limit, offset=offset)
+        tags = await self._tag_repository.get_all(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
         return [TagResponse.model_validate(tag) for tag in tags]
 
     async def update_tag(self, tag_id: UUID, tag_data: TagCreate) -> TagResponse:
@@ -82,9 +88,16 @@ class TagService:
         tags = await self._tag_repository.search_by_name(name_pattern)
         return [TagResponse.model_validate(tag) for tag in tags]
 
-    async def get_tags_by_color(self, color: str) -> list[TagResponse]:
+    async def get_tags_by_color(
+        self,
+        color: str,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[TagResponse]:
         """Get tags by color."""
-        tags = await self._tag_repository.get_by_color(color)
+        tags = await self._tag_repository.get_by_color(
+            color, sort_by=sort_by, sort_order=sort_order
+        )
         return [TagResponse.model_validate(tag) for tag in tags]
 
     async def get_popular_tags(self, limit: int = 10) -> list[TagResponse]:

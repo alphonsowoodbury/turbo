@@ -18,15 +18,17 @@ class IssueRepository(BaseRepository[Issue, IssueCreate, IssueUpdate]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, Issue)
 
-    async def get_by_project(self, project_id: UUID) -> list[Issue]:
+    async def get_by_project(self, project_id: UUID, sort_by: str | None = None, sort_order: str = "desc") -> list[Issue]:
         """Get issues by project ID."""
         stmt = select(self._model).where(self._model.project_id == project_id)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_status(self, status: str) -> list[Issue]:
+    async def get_by_status(self, status: str, sort_by: str | None = None, sort_order: str = "desc") -> list[Issue]:
         """Get issues by status."""
         stmt = select(self._model).where(self._model.status == status)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -36,9 +38,10 @@ class IssueRepository(BaseRepository[Issue, IssueCreate, IssueUpdate]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_assignee(self, assignee: str) -> list[Issue]:
+    async def get_by_assignee(self, assignee: str, sort_by: str | None = None, sort_order: str = "desc") -> list[Issue]:
         """Get issues by assignee."""
         stmt = select(self._model).where(self._model.assignee == assignee)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -144,6 +147,8 @@ class IssueRepository(BaseRepository[Issue, IssueCreate, IssueUpdate]):
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Issue]:
         """Get issues by workspace (filtering by project's workspace)."""
         stmt = (
@@ -156,6 +161,7 @@ class IssueRepository(BaseRepository[Issue, IssueCreate, IssueUpdate]):
         if workspace == "work" and work_company:
             stmt = stmt.where(Project.work_company == work_company)
 
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:

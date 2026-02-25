@@ -196,10 +196,10 @@ class IssueService:
         return await self._enrich_issue_with_dependencies(issue)
 
     async def get_all_issues(
-        self, limit: int | None = None, offset: int | None = None
+        self, limit: int | None = None, offset: int | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> list[IssueResponse]:
         """Get all issues with optional pagination."""
-        issues = await self._issue_repository.get_all(limit=limit, offset=offset)
+        issues = await self._issue_repository.get_all(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
         return [IssueResponse.model_validate(issue) for issue in issues]
 
     async def get_issues_by_workspace(
@@ -208,6 +208,8 @@ class IssueService:
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[IssueResponse]:
         """Get issues filtered by workspace."""
         issues = await self._issue_repository.get_by_workspace(
@@ -215,6 +217,8 @@ class IssueService:
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return [IssueResponse.model_validate(issue) for issue in issues]
 
@@ -335,24 +339,24 @@ class IssueService:
             raise IssueNotFoundError(issue_id)
         return IssueResponse.model_validate(issue)
 
-    async def get_issues_by_project(self, project_id: UUID) -> list[IssueResponse]:
+    async def get_issues_by_project(self, project_id: UUID, sort_by: str | None = None, sort_order: str = "desc") -> list[IssueResponse]:
         """Get all issues for a project."""
         # Verify project exists
         project = await self._project_repository.get_by_id(project_id)
         if not project:
             raise ProjectNotFoundError(project_id)
 
-        issues = await self._issue_repository.get_by_project(project_id)
+        issues = await self._issue_repository.get_by_project(project_id, sort_by=sort_by, sort_order=sort_order)
         return [IssueResponse.model_validate(issue) for issue in issues]
 
-    async def get_issues_by_status(self, status: str) -> list[IssueResponse]:
+    async def get_issues_by_status(self, status: str, sort_by: str | None = None, sort_order: str = "desc") -> list[IssueResponse]:
         """Get issues by status."""
-        issues = await self._issue_repository.get_by_status(status)
+        issues = await self._issue_repository.get_by_status(status, sort_by=sort_by, sort_order=sort_order)
         return [IssueResponse.model_validate(issue) for issue in issues]
 
-    async def get_issues_by_assignee(self, assignee: str) -> list[IssueResponse]:
+    async def get_issues_by_assignee(self, assignee: str, sort_by: str | None = None, sort_order: str = "desc") -> list[IssueResponse]:
         """Get issues assigned to a specific person."""
-        issues = await self._issue_repository.get_by_assignee(assignee)
+        issues = await self._issue_repository.get_by_assignee(assignee, sort_by=sort_by, sort_order=sort_order)
         return [IssueResponse.model_validate(issue) for issue in issues]
 
     async def get_open_issues(self) -> list[IssueResponse]:

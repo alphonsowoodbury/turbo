@@ -136,10 +136,16 @@ class MilestoneService:
         return self._to_response(milestone)
 
     async def get_all_milestones(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[MilestoneResponse]:
         """Get all milestones with optional pagination."""
-        milestones = await self._milestone_repository.get_all(limit=limit, offset=offset)
+        milestones = await self._milestone_repository.get_all(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
         # For list views, don't try to access relationships - just return basic data
         return [
             MilestoneResponse(
@@ -159,14 +165,21 @@ class MilestoneService:
             for m in milestones
         ]
 
-    async def get_milestones_by_project(self, project_id: UUID) -> list[MilestoneResponse]:
+    async def get_milestones_by_project(
+        self,
+        project_id: UUID,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[MilestoneResponse]:
         """Get all milestones for a project."""
         # Verify project exists
         project = await self._project_repository.get_by_id(project_id)
         if not project:
             raise ProjectNotFoundError(project_id)
 
-        milestones = await self._milestone_repository.get_by_project(project_id)
+        milestones = await self._milestone_repository.get_by_project(
+            project_id, sort_by=sort_by, sort_order=sort_order
+        )
         # For list views, don't try to access relationships - just return basic data
         return [
             MilestoneResponse(
@@ -242,9 +255,13 @@ class MilestoneService:
             raise MilestoneNotFoundError(milestone_id)
         return success
 
-    async def get_milestones_by_status(self, status: str) -> list[MilestoneResponse]:
+    async def get_milestones_by_status(
+        self, status: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[MilestoneResponse]:
         """Get milestones by status."""
-        milestones = await self._milestone_repository.get_by_status(status)
+        milestones = await self._milestone_repository.get_by_status(
+            status, sort_by=sort_by, sort_order=sort_order
+        )
         # For list views, don't try to access relationships - just return basic data
         return [
             MilestoneResponse(
@@ -270,6 +287,8 @@ class MilestoneService:
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[MilestoneResponse]:
         """Get milestones filtered by workspace."""
         milestones = await self._milestone_repository.get_by_workspace(
@@ -277,6 +296,8 @@ class MilestoneService:
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         # For list views, don't try to access relationships - just return basic data
         return [

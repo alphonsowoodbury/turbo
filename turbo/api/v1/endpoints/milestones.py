@@ -77,6 +77,8 @@ async def get_milestones(
     work_company: str | None = Query(None),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     milestone_service: MilestoneService = Depends(get_milestone_service),
 ) -> list[MilestoneResponse]:
     """Get all milestones with optional filtering by project, status, or workspace."""
@@ -88,13 +90,21 @@ async def get_milestones(
                 work_company=work_company,
                 limit=limit,
                 offset=offset,
+                sort_by=sort_by,
+                sort_order=sort_order,
             )
         elif project_id:
-            return await milestone_service.get_milestones_by_project(project_id)
+            return await milestone_service.get_milestones_by_project(
+                project_id, sort_by=sort_by, sort_order=sort_order
+            )
         elif status_filter:
-            return await milestone_service.get_milestones_by_status(status_filter)
+            return await milestone_service.get_milestones_by_status(
+                status_filter, sort_by=sort_by, sort_order=sort_order
+            )
         else:
-            return await milestone_service.get_all_milestones(limit=limit, offset=offset)
+            return await milestone_service.get_all_milestones(
+                limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+            )
     except ProjectNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 

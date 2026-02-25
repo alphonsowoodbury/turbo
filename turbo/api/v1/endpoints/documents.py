@@ -97,6 +97,8 @@ async def get_documents(
     work_company: str | None = Query(None),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     document_service: DocumentService = Depends(get_document_service),
 ) -> list[DocumentResponse]:
     """Get all documents with optional filtering by type, format, project, or workspace."""
@@ -107,15 +109,25 @@ async def get_documents(
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     elif type_filter:
-        return await document_service.get_documents_by_type(type_filter)
+        return await document_service.get_documents_by_type(
+            type_filter, sort_by=sort_by, sort_order=sort_order
+        )
     elif format_filter:
-        return await document_service.get_documents_by_format(format_filter)
+        return await document_service.get_documents_by_format(
+            format_filter, sort_by=sort_by, sort_order=sort_order
+        )
     elif project_id:
-        return await document_service.get_documents_by_project(project_id)
+        return await document_service.get_documents_by_project(
+            project_id, sort_by=sort_by, sort_order=sort_order
+        )
     else:
-        return await document_service.get_all_documents(limit=limit, offset=offset)
+        return await document_service.get_all_documents(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
 
 
 @router.put("/{document_id}", response_model=DocumentResponse)

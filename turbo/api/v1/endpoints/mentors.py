@@ -53,6 +53,8 @@ async def get_mentors(
     is_active: bool | None = Query(True),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     mentor_service: MentorService = Depends(get_mentor_service),
 ) -> list[MentorResponse]:
     """Get all mentors with optional filtering by workspace."""
@@ -63,6 +65,8 @@ async def get_mentors(
             is_active=is_active,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     else:
         # Get all mentors (no workspace filter)
@@ -70,6 +74,8 @@ async def get_mentors(
             is_active=is_active,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
 

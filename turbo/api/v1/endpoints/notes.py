@@ -49,6 +49,8 @@ async def get_notes(
     include_archived: bool = Query(False),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     note_service: NoteService = Depends(get_note_service),
 ) -> list[NoteResponse]:
     """Get all notes with optional filtering by workspace and company."""
@@ -58,6 +60,8 @@ async def get_notes(
         include_archived=include_archived,
         limit=limit,
         offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
 

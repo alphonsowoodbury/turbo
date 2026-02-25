@@ -108,6 +108,8 @@ async def get_issues(
     work_company: str | None = Query(None),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     issue_service: IssueService = Depends(get_issue_service),
 ) -> list[IssueResponse]:
     """Get all issues with optional filtering by status, assignee, project, and workspace."""
@@ -118,15 +120,17 @@ async def get_issues(
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     elif status_filter:
-        return await issue_service.get_issues_by_status(status_filter)
+        return await issue_service.get_issues_by_status(status_filter, sort_by=sort_by, sort_order=sort_order)
     elif assignee:
-        return await issue_service.get_issues_by_assignee(assignee)
+        return await issue_service.get_issues_by_assignee(assignee, sort_by=sort_by, sort_order=sort_order)
     elif project_id:
-        return await issue_service.get_issues_by_project(project_id)
+        return await issue_service.get_issues_by_project(project_id, sort_by=sort_by, sort_order=sort_order)
     else:
-        return await issue_service.get_all_issues(limit=limit, offset=offset)
+        return await issue_service.get_all_issues(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
 
 
 @router.put("/{issue_id_or_key}", response_model=IssueResponse)

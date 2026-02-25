@@ -26,9 +26,17 @@ class NoteRepository(BaseRepository[Note, NoteCreate, NoteUpdate]):
         await self._session.refresh(db_obj, ["tags"])
         return db_obj
 
-    async def get_all(self, limit: int = 100, offset: int = 0) -> list[Note]:
+    async def get_all(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[Note]:
         """Get all notes with tags eagerly loaded."""
-        stmt = select(self._model).options(selectinload(self._model.tags)).limit(limit).offset(offset)
+        stmt = select(self._model).options(selectinload(self._model.tags))
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        stmt = stmt.limit(limit).offset(offset)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -57,19 +65,33 @@ class NoteRepository(BaseRepository[Note, NoteCreate, NoteUpdate]):
         await self._session.refresh(db_obj, ["tags"])
         return db_obj
 
-    async def get_by_workspace(self, workspace: str, include_archived: bool = False) -> list[Note]:
+    async def get_by_workspace(
+        self,
+        workspace: str,
+        include_archived: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[Note]:
         """Get notes by workspace."""
         stmt = select(self._model).options(selectinload(self._model.tags)).where(self._model.workspace == workspace)
         if not include_archived:
             stmt = stmt.where(self._model.is_archived == False)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_work_company(self, work_company: str, include_archived: bool = False) -> list[Note]:
+    async def get_by_work_company(
+        self,
+        work_company: str,
+        include_archived: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[Note]:
         """Get notes by work company."""
         stmt = select(self._model).options(selectinload(self._model.tags)).where(self._model.work_company == work_company)
         if not include_archived:
             stmt = stmt.where(self._model.is_archived == False)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

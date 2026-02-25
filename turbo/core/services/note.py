@@ -200,14 +200,22 @@ class NoteService:
         include_archived: bool = False,
         limit: int = 50,
         offset: int = 0,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[NoteResponse]:
         """List notes with optional filtering."""
         if workspace:
-            notes = await self._note_repository.get_by_workspace(workspace, include_archived)
+            notes = await self._note_repository.get_by_workspace(
+                workspace, include_archived, sort_by=sort_by, sort_order=sort_order
+            )
         elif work_company:
-            notes = await self._note_repository.get_by_work_company(work_company, include_archived)
+            notes = await self._note_repository.get_by_work_company(
+                work_company, include_archived, sort_by=sort_by, sort_order=sort_order
+            )
         else:
-            notes = await self._note_repository.get_all()
+            notes = await self._note_repository.get_all(
+                sort_by=sort_by, sort_order=sort_order
+            )
             if not include_archived:
                 notes = [n for n in notes if not n.is_archived]
 

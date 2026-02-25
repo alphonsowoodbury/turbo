@@ -167,15 +167,17 @@ class StaffService:
         is_active: bool | None = True,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[StaffResponse]:
         """Get all staff with optional filters."""
         if is_active is not None:
             staff_list = await self._staff_repository.get_active_staff(
-                role_type=role_type
+                role_type=role_type, sort_by=sort_by, sort_order=sort_order
             )
         else:
             staff_list = await self._staff_repository.get_all(
-                limit=limit, offset=offset
+                limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
             )
 
         return [StaffResponse.model_validate(s) for s in staff_list]

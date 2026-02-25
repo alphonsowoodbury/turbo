@@ -24,25 +24,35 @@ class DecisionRepository(BaseRepository[Decision, DecisionCreate, DecisionUpdate
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_status(self, status: str) -> list[Decision]:
+    async def get_by_status(
+        self, status: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Decision]:
         """Get decisions by status."""
         stmt = (
             select(self._model)
             .options(selectinload(self._model.initiatives))
             .where(self._model.status == status)
-            .order_by(self._model.created_at.desc())
         )
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(self._model.created_at.desc())
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_type(self, decision_type: str) -> list[Decision]:
+    async def get_by_type(
+        self, decision_type: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Decision]:
         """Get decisions by type."""
         stmt = (
             select(self._model)
             .options(selectinload(self._model.initiatives))
             .where(self._model.decision_type == decision_type)
-            .order_by(self._model.created_at.desc())
         )
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(self._model.created_at.desc())
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -57,14 +67,21 @@ class DecisionRepository(BaseRepository[Decision, DecisionCreate, DecisionUpdate
         return result.scalar_one_or_none()
 
     async def get_all_with_relations(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Decision]:
         """Get all decisions with relations loaded."""
         stmt = (
             select(self._model)
             .options(selectinload(self._model.initiatives))
-            .order_by(self._model.created_at.desc())
         )
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(self._model.created_at.desc())
         if limit is not None:
             stmt = stmt.limit(limit)
         if offset is not None:

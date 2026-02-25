@@ -67,13 +67,19 @@ async def get_tags(
     color: str | None = Query(None),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     tag_service: TagService = Depends(get_tag_service),
 ) -> list[TagResponse]:
     """Get all tags with optional filtering."""
     if color:
-        return await tag_service.get_tags_by_color(color)
+        return await tag_service.get_tags_by_color(
+            color, sort_by=sort_by, sort_order=sort_order
+        )
     else:
-        return await tag_service.get_all_tags(limit=limit, offset=offset)
+        return await tag_service.get_all_tags(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
 
 
 @router.put("/{tag_id}", response_model=TagResponse)

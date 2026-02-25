@@ -17,9 +17,10 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, Project)
 
-    async def get_by_status(self, status: str) -> list[Project]:
+    async def get_by_status(self, status: str, sort_by: str | None = None, sort_order: str = "desc") -> list[Project]:
         """Get projects by status."""
         stmt = select(self._model).where(self._model.status == status)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -60,10 +61,11 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         return result.scalar_one_or_none()
 
     async def get_archived(
-        self, limit: int | None = None, offset: int | None = None
+        self, limit: int | None = None, offset: int | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> list[Project]:
         """Get archived projects."""
         stmt = select(self._model).where(self._model.is_archived)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:
@@ -73,10 +75,11 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         return list(result.scalars().all())
 
     async def get_active(
-        self, limit: int | None = None, offset: int | None = None
+        self, limit: int | None = None, offset: int | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> list[Project]:
         """Get active (non-archived) projects."""
         stmt = select(self._model).where(~self._model.is_archived)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:
@@ -85,9 +88,10 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_priority(self, priority: str) -> list[Project]:
+    async def get_by_priority(self, priority: str, sort_by: str | None = None, sort_order: str = "desc") -> list[Project]:
         """Get projects by priority."""
         stmt = select(self._model).where(self._model.priority == priority)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -103,6 +107,8 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Project]:
         """Get projects by workspace, optionally filtered by company for work workspace."""
         stmt = select(self._model).where(self._model.workspace == workspace)
@@ -111,6 +117,7 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         if workspace == "work" and work_company:
             stmt = stmt.where(self._model.work_company == work_company)
 
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:
@@ -126,6 +133,8 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         status: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Project]:
         """Get all projects with optional workspace and status filtering."""
         stmt = select(self._model)
@@ -138,6 +147,7 @@ class ProjectRepository(BaseRepository[Project, ProjectCreate, ProjectUpdate]):
         if status:
             stmt = stmt.where(self._model.status == status)
 
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:

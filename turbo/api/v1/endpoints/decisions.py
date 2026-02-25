@@ -66,17 +66,25 @@ async def list_decisions(
     decision_type: str | None = Query(None, alias="type"),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     repo: DecisionRepository = Depends(get_decision_repo),
 ) -> DecisionList:
     """List all decisions with optional filtering."""
     offset = (page - 1) * per_page
 
     if status_filter:
-        decisions = await repo.get_by_status(status_filter)
+        decisions = await repo.get_by_status(
+            status_filter, sort_by=sort_by, sort_order=sort_order
+        )
     elif decision_type:
-        decisions = await repo.get_by_type(decision_type)
+        decisions = await repo.get_by_type(
+            decision_type, sort_by=sort_by, sort_order=sort_order
+        )
     else:
-        decisions = await repo.get_all_with_relations(limit=per_page, offset=offset)
+        decisions = await repo.get_all_with_relations(
+            limit=per_page, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
 
     total = await repo.count()
 

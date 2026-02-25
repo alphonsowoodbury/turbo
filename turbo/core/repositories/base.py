@@ -7,6 +7,7 @@ from uuid import UUID
 from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import asc, desc
 
 from turbo.core.database.base import Base
 
@@ -38,11 +39,31 @@ class BaseRepository(ABC, Generic[ModelType, CreateSchemaType, UpdateSchemaType]
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    def _apply_sorting(self, stmt, sort_by: str | None, sort_order: str = "desc"):
+        """Apply sorting to a query statement.
+
+        Validates sort_by against actual model columns to prevent injection.
+        Defaults to updated_at desc if no sort specified.
+        """
+        order_fn = desc if sort_order == "desc" else asc
+
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = stmt.order_by(order_fn(getattr(self._model, sort_by)))
+        elif hasattr(self._model, "updated_at"):
+            stmt = stmt.order_by(desc(self._model.updated_at))
+
+        return stmt
+
     async def get_all(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[ModelType]:
-        """Get all records with optional pagination."""
+        """Get all records with optional pagination and sorting."""
         stmt = select(self._model)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if offset:
             stmt = stmt.offset(offset)
         if limit:

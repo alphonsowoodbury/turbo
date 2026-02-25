@@ -73,14 +73,20 @@ class MentorService:
         is_active: bool | None = True,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[MentorResponse]:
         """Get all mentors regardless of workspace."""
         mentors = await self._mentor_repository.get_active_mentors(
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         ) if is_active else await self._mentor_repository.get_all(
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
         responses = []
@@ -99,6 +105,8 @@ class MentorService:
         is_active: bool | None = True,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[MentorResponse]:
         """Get mentors by workspace."""
         mentors = await self._mentor_repository.get_by_workspace(
@@ -107,6 +115,8 @@ class MentorService:
             is_active=is_active,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
         responses = []

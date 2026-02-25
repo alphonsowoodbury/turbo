@@ -23,6 +23,8 @@ class MentorRepository(BaseRepository[Mentor, MentorCreate, MentorUpdate]):
         is_active: bool | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Mentor]:
         """Get mentors by workspace."""
         stmt = select(self._model).where(self._model.workspace == workspace)
@@ -35,8 +37,11 @@ class MentorRepository(BaseRepository[Mentor, MentorCreate, MentorUpdate]):
         if is_active is not None:
             stmt = stmt.where(self._model.is_active == is_active)
 
-        # Order by created date (most recent first)
-        stmt = stmt.order_by(self._model.created_at.desc())
+        # Apply sorting (falls back to updated_at desc if no sort_by)
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(self._model.created_at.desc())
 
         if offset:
             stmt = stmt.offset(offset)
@@ -50,13 +55,17 @@ class MentorRepository(BaseRepository[Mentor, MentorCreate, MentorUpdate]):
         self,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Mentor]:
         """Get all active mentors."""
-        stmt = (
-            select(self._model)
-            .where(self._model.is_active == True)  # noqa: E712
-            .order_by(self._model.created_at.desc())
-        )
+        stmt = select(self._model).where(self._model.is_active == True)  # noqa: E712
+
+        # Apply sorting (falls back to updated_at desc if no sort_by)
+        if sort_by and hasattr(self._model, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(self._model.created_at.desc())
 
         if offset:
             stmt = stmt.offset(offset)

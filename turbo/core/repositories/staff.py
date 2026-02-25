@@ -92,12 +92,19 @@ class StaffRepository(BaseRepository[Staff, dict, dict]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_active_staff(self, role_type: Optional[str] = None) -> list[Staff]:
+    async def get_active_staff(
+        self,
+        role_type: Optional[str] = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[Staff]:
         """
         Get all active staff with optional role type filter.
 
         Args:
             role_type: Optional filter by role_type (leadership|domain_expert)
+            sort_by: Column name to sort by
+            sort_order: Sort direction ('asc' or 'desc')
 
         Returns:
             List of active staff members
@@ -107,7 +114,10 @@ class StaffRepository(BaseRepository[Staff, dict, dict]):
         if role_type:
             stmt = stmt.where(Staff.role_type == role_type)
 
-        stmt = stmt.order_by(Staff.name)
+        if sort_by and hasattr(Staff, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(Staff.name)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

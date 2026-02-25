@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TagBadge } from "@/components/tags";
 import { Plus, Filter, X, Tags as TagsIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useTags } from "@/hooks/use-tags";
 import {
   Select,
   SelectContent,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 
 // Color categories for filtering
-const colorCategories = {
+const colorCategories: Record<string, string> = {
   blue: "#3B82F6",
   green: "#10B981",
   red: "#EF4444",
@@ -36,115 +36,13 @@ export default function TagsPage() {
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>("all");
-  const [selectedItemType, setSelectedItemType] = useState<string>("all");
-  const [minUsageCount, setMinUsageCount] = useState<string>("all");
 
   // Sort and group state
   const [groupBy, setGroupBy] = useState<string>("none");
   const [sortBy, setSortBy] = useState<string>("name");
 
-  // Mock data - will be replaced with API calls
-  const tags = [
-    {
-      id: "1",
-      name: "frontend",
-      color: "#3B82F6",
-      description: "Frontend development tasks",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-20T14:30:00Z",
-      usage: {
-        total: 45,
-        projects: 5,
-        issues: 32,
-        milestones: 4,
-        initiatives: 2,
-        literature: 2,
-      }
-    },
-    {
-      id: "2",
-      name: "backend",
-      color: "#10B981",
-      description: "Backend development tasks",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-18T11:15:00Z",
-      usage: {
-        total: 32,
-        projects: 3,
-        issues: 26,
-        milestones: 2,
-        initiatives: 1,
-        literature: 0,
-      }
-    },
-    {
-      id: "3",
-      name: "bug",
-      color: "#EF4444",
-      description: "Bug fixes and issues",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-22T09:45:00Z",
-      usage: {
-        total: 18,
-        projects: 0,
-        issues: 18,
-        milestones: 0,
-        initiatives: 0,
-        literature: 0,
-      }
-    },
-    {
-      id: "4",
-      name: "feature",
-      color: "#8B5CF6",
-      description: "New feature development",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-23T16:20:00Z",
-      usage: {
-        total: 67,
-        projects: 8,
-        issues: 45,
-        milestones: 8,
-        initiatives: 6,
-        literature: 0,
-      }
-    },
-    {
-      id: "5",
-      name: "urgent",
-      color: "#F59E0B",
-      description: "Time-sensitive tasks",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-21T13:10:00Z",
-      usage: {
-        total: 12,
-        projects: 2,
-        issues: 10,
-        milestones: 0,
-        initiatives: 0,
-        literature: 0,
-      }
-    },
-    {
-      id: "6",
-      name: "design",
-      color: "#EC4899",
-      description: "Design and UX work",
-      created_at: "2024-01-15T10:00:00Z",
-      updated_at: "2024-03-19T08:30:00Z",
-      usage: {
-        total: 28,
-        projects: 4,
-        issues: 20,
-        milestones: 3,
-        initiatives: 1,
-        literature: 0,
-      }
-    },
-  ];
-
-  const isLoading = false;
-  const error = null;
+  // Real API data
+  const { data: tags, isLoading, error } = useTags();
 
   // Helper function to get color category
   const getColorCategory = (hexColor: string): string => {
@@ -166,20 +64,8 @@ export default function TagsPage() {
       );
     }
 
-    if (selectedItemType !== "all") {
-      filtered = filtered.filter((tag) => {
-        const usage = tag.usage as any;
-        return usage[selectedItemType] > 0;
-      });
-    }
-
-    if (minUsageCount !== "all") {
-      const minCount = parseInt(minUsageCount);
-      filtered = filtered.filter((tag) => tag.usage.total >= minCount);
-    }
-
     return filtered;
-  }, [tags, selectedColor, selectedItemType, minUsageCount]);
+  }, [tags, selectedColor]);
 
   // Sort tags
   const sortedTags = useMemo(() => {
@@ -188,8 +74,6 @@ export default function TagsPage() {
     switch (sortBy) {
       case "name":
         return sorted.sort((a, b) => a.name.localeCompare(b.name));
-      case "usage":
-        return sorted.sort((a, b) => b.usage.total - a.usage.total);
       case "updated":
         return sorted.sort((a, b) =>
           new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
@@ -216,11 +100,6 @@ export default function TagsPage() {
 
       if (groupBy === "color") {
         key = getColorCategory(tag.color);
-      } else if (groupBy === "usage") {
-        if (tag.usage.total >= 50) key = "High Usage (50+)";
-        else if (tag.usage.total >= 20) key = "Medium Usage (20-49)";
-        else if (tag.usage.total >= 10) key = "Low Usage (10-19)";
-        else key = "Minimal Usage (< 10)";
       }
 
       if (!groups[key]) {
@@ -233,19 +112,18 @@ export default function TagsPage() {
   }, [sortedTags, groupBy]);
 
   // Check for active filters
-  const hasActiveFilters =
-    selectedColor !== "all" ||
-    selectedItemType !== "all" ||
-    minUsageCount !== "all";
+  const hasActiveFilters = selectedColor !== "all";
 
   const clearFilters = () => {
     setSelectedColor("all");
-    setSelectedItemType("all");
-    setMinUsageCount("all");
   };
 
   return (
-    <PageLayout title="Tags" isLoading={isLoading} error={error}>
+    <PageLayout
+      title="Tags"
+      isLoading={isLoading}
+      error={error ?? null}
+    >
       <div className="p-6">
         {/* Controls Bar */}
         <div className="mb-4 flex items-center justify-between">
@@ -267,11 +145,7 @@ export default function TagsPage() {
               Filter
               {hasActiveFilters && (
                 <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
-                  {[
-                    selectedColor !== "all",
-                    selectedItemType !== "all",
-                    minUsageCount !== "all",
-                  ].filter(Boolean).length}
+                  {[selectedColor !== "all"].filter(Boolean).length}
                 </Badge>
               )}
             </Button>
@@ -292,7 +166,6 @@ export default function TagsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="usage">Usage</SelectItem>
                 <SelectItem value="updated">Updated</SelectItem>
                 <SelectItem value="created">Created</SelectItem>
               </SelectContent>
@@ -307,7 +180,6 @@ export default function TagsPage() {
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
                 <SelectItem value="color">Color</SelectItem>
-                <SelectItem value="usage">Usage</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -335,41 +207,6 @@ export default function TagsPage() {
                       <SelectItem value="pink">Pink</SelectItem>
                       <SelectItem value="gray">Gray</SelectItem>
                       <SelectItem value="orange">Orange</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Item Type Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Used In</label>
-                  <Select value={selectedItemType} onValueChange={setSelectedItemType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="projects">Projects</SelectItem>
-                      <SelectItem value="issues">Issues</SelectItem>
-                      <SelectItem value="milestones">Milestones</SelectItem>
-                      <SelectItem value="initiatives">Initiatives</SelectItem>
-                      <SelectItem value="literature">Literature</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Usage Count Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Min Usage</label>
-                  <Select value={minUsageCount} onValueChange={setMinUsageCount}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Any</SelectItem>
-                      <SelectItem value="10">10+</SelectItem>
-                      <SelectItem value="20">20+</SelectItem>
-                      <SelectItem value="50">50+</SelectItem>
-                      <SelectItem value="100">100+</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -413,24 +250,6 @@ export default function TagsPage() {
                                     {tag.description}
                                   </p>
                                 )}
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                  <span>Total: {tag.usage.total}</span>
-                                  {tag.usage.projects > 0 && (
-                                    <span>Projects: {tag.usage.projects}</span>
-                                  )}
-                                  {tag.usage.issues > 0 && (
-                                    <span>Issues: {tag.usage.issues}</span>
-                                  )}
-                                  {tag.usage.milestones > 0 && (
-                                    <span>Milestones: {tag.usage.milestones}</span>
-                                  )}
-                                  {tag.usage.initiatives > 0 && (
-                                    <span>Initiatives: {tag.usage.initiatives}</span>
-                                  )}
-                                  {tag.usage.literature > 0 && (
-                                    <span>Literature: {tag.usage.literature}</span>
-                                  )}
-                                </div>
                               </div>
                             </div>
 

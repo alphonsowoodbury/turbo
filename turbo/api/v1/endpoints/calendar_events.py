@@ -60,6 +60,8 @@ async def get_events(
     include_cancelled: bool = Query(False),
     limit: int | None = Query(100, ge=1, le=500),
     offset: int | None = Query(0, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     repo: CalendarEventRepository = Depends(get_calendar_event_repo),
 ) -> list[CalendarEventResponse]:
     """Get all calendar events with optional filtering."""
@@ -69,6 +71,8 @@ async def get_events(
             limit=limit,
             include_completed=include_completed,
             include_cancelled=include_cancelled,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     # Get by date range
     elif start_date and end_date:
@@ -77,6 +81,8 @@ async def get_events(
             end_date=end_date,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     # Get by category
     elif category:
@@ -84,10 +90,14 @@ async def get_events(
             category=category,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     # Get all
     else:
-        events = await repo.get_all(limit=limit, offset=offset)
+        events = await repo.get_all(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
 
     return [CalendarEventResponse.model_validate(event) for event in events]
 

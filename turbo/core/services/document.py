@@ -57,10 +57,16 @@ class DocumentService:
         return DocumentResponse.model_validate(document)
 
     async def get_all_documents(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[DocumentResponse]:
         """Get all documents with optional pagination."""
-        documents = await self._document_repository.get_all(limit=limit, offset=offset)
+        documents = await self._document_repository.get_all(
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
+        )
         return [DocumentResponse.model_validate(document) for document in documents]
 
     async def update_document(
@@ -84,7 +90,10 @@ class DocumentService:
         return success
 
     async def get_documents_by_project(
-        self, project_id: UUID
+        self,
+        project_id: UUID,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[DocumentResponse]:
         """Get all documents for a project."""
         # Verify project exists
@@ -92,12 +101,18 @@ class DocumentService:
         if not project:
             raise ProjectNotFoundError(project_id)
 
-        documents = await self._document_repository.get_by_project(project_id)
+        documents = await self._document_repository.get_by_project(
+            project_id, sort_by=sort_by, sort_order=sort_order
+        )
         return [DocumentResponse.model_validate(document) for document in documents]
 
-    async def get_documents_by_type(self, document_type: str) -> list[DocumentResponse]:
+    async def get_documents_by_type(
+        self, document_type: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[DocumentResponse]:
         """Get documents by type."""
-        documents = await self._document_repository.get_by_type(document_type)
+        documents = await self._document_repository.get_by_type(
+            document_type, sort_by=sort_by, sort_order=sort_order
+        )
         return [DocumentResponse.model_validate(document) for document in documents]
 
     async def get_documents_by_author(self, author: str) -> list[DocumentResponse]:
@@ -105,9 +120,13 @@ class DocumentService:
         documents = await self._document_repository.get_by_author(author)
         return [DocumentResponse.model_validate(document) for document in documents]
 
-    async def get_documents_by_format(self, document_format: str) -> list[DocumentResponse]:
+    async def get_documents_by_format(
+        self, document_format: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[DocumentResponse]:
         """Get documents by format."""
-        documents = await self._document_repository.get_by_format(document_format)
+        documents = await self._document_repository.get_by_format(
+            document_format, sort_by=sort_by, sort_order=sort_order
+        )
         return [DocumentResponse.model_validate(document) for document in documents]
 
     async def get_documents_by_workspace(
@@ -116,6 +135,8 @@ class DocumentService:
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[DocumentResponse]:
         """Get documents filtered by workspace."""
         documents = await self._document_repository.get_by_workspace(
@@ -123,6 +144,8 @@ class DocumentService:
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return [DocumentResponse.model_validate(document) for document in documents]
 

@@ -76,6 +76,8 @@ async def get_staff_list(
     is_active: bool | None = Query(True),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     staff_service: StaffService = Depends(get_staff_service),
 ) -> list[StaffResponse]:
     """Get all staff with optional filtering."""
@@ -84,6 +86,8 @@ async def get_staff_list(
         is_active=is_active,
         limit=limit,
         offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
 

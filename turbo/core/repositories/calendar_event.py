@@ -25,12 +25,19 @@ class CalendarEventRepository(
         end_date: datetime,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[CalendarEvent]:
         """Get events within a date range."""
         stmt = select(CalendarEvent).where(
             CalendarEvent.start_date >= start_date,
             CalendarEvent.start_date <= end_date,
-        ).order_by(CalendarEvent.start_date)
+        )
+
+        if sort_by and hasattr(CalendarEvent, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(CalendarEvent.start_date)
 
         if offset:
             stmt = stmt.offset(offset)
@@ -45,11 +52,18 @@ class CalendarEventRepository(
         category: str,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[CalendarEvent]:
         """Get events by category."""
         stmt = select(CalendarEvent).where(
             CalendarEvent.category == category
-        ).order_by(CalendarEvent.start_date.desc())
+        )
+
+        if sort_by and hasattr(CalendarEvent, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(CalendarEvent.start_date.desc())
 
         if offset:
             stmt = stmt.offset(offset)
@@ -64,6 +78,8 @@ class CalendarEventRepository(
         limit: int | None = 10,
         include_completed: bool = False,
         include_cancelled: bool = False,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[CalendarEvent]:
         """Get upcoming events."""
         stmt = select(CalendarEvent).where(
@@ -75,7 +91,13 @@ class CalendarEventRepository(
         if not include_cancelled:
             stmt = stmt.where(CalendarEvent.is_cancelled == False)
 
-        stmt = stmt.order_by(CalendarEvent.start_date).limit(limit)
+        if sort_by and hasattr(CalendarEvent, sort_by):
+            stmt = self._apply_sorting(stmt, sort_by, sort_order)
+        else:
+            stmt = stmt.order_by(CalendarEvent.start_date)
+
+        if limit:
+            stmt = stmt.limit(limit)
 
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

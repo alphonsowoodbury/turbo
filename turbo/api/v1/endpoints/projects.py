@@ -62,6 +62,8 @@ async def get_projects(
     work_company: str | None = Query(None),
     limit: int | None = Query(None, ge=1, le=100),
     offset: int | None = Query(None, ge=0),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     project_service: ProjectService = Depends(get_project_service),
 ) -> list[ProjectResponse]:
     """Get all projects with optional filtering by status, priority, and workspace."""
@@ -72,13 +74,15 @@ async def get_projects(
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
     elif status_filter:
-        return await project_service.get_projects_by_status(status_filter)
+        return await project_service.get_projects_by_status(status_filter, sort_by=sort_by, sort_order=sort_order)
     elif priority:
-        return await project_service.get_projects_by_priority(priority)
+        return await project_service.get_projects_by_priority(priority, sort_by=sort_by, sort_order=sort_order)
     else:
-        return await project_service.get_all_projects(limit=limit, offset=offset)
+        return await project_service.get_all_projects(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
 
 
 @router.put("/{project_id}", response_model=ProjectResponse)

@@ -62,10 +62,10 @@ class ProjectService:
         return ProjectResponse.model_validate(project)
 
     async def get_all_projects(
-        self, limit: int | None = None, offset: int | None = None
+        self, limit: int | None = None, offset: int | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> list[ProjectResponse]:
         """Get all projects with optional pagination."""
-        projects = await self._project_repository.get_all(limit=limit, offset=offset)
+        projects = await self._project_repository.get_all(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
         return [ProjectResponse.model_validate(project) for project in projects]
 
     async def update_project(
@@ -148,16 +148,16 @@ class ProjectService:
             completion_rate=stats["completion_rate"],
         )
 
-    async def get_projects_by_status(self, status: str) -> list[ProjectResponse]:
+    async def get_projects_by_status(self, status: str, sort_by: str | None = None, sort_order: str = "desc") -> list[ProjectResponse]:
         """Get projects by status."""
-        projects = await self._project_repository.get_by_status(status)
+        projects = await self._project_repository.get_by_status(status, sort_by=sort_by, sort_order=sort_order)
         return [ProjectResponse.model_validate(project) for project in projects]
 
     async def get_active_projects(
-        self, limit: int | None = None, offset: int | None = None
+        self, limit: int | None = None, offset: int | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> list[ProjectResponse]:
         """Get active (non-archived) projects."""
-        projects = await self._project_repository.get_active(limit=limit, offset=offset)
+        projects = await self._project_repository.get_active(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
         return [ProjectResponse.model_validate(project) for project in projects]
 
     async def get_archived_projects(
@@ -192,6 +192,8 @@ class ProjectService:
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[ProjectResponse]:
         """Get projects filtered by workspace."""
         projects = await self._project_repository.get_by_workspace(
@@ -199,5 +201,7 @@ class ProjectService:
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return [ProjectResponse.model_validate(project) for project in projects]

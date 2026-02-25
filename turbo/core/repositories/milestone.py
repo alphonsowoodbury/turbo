@@ -18,15 +18,21 @@ class MilestoneRepository(BaseRepository[Milestone, MilestoneCreate, MilestoneUp
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, Milestone)
 
-    async def get_by_project(self, project_id: UUID) -> list[Milestone]:
+    async def get_by_project(
+        self, project_id: UUID, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Milestone]:
         """Get milestones by project ID."""
         stmt = select(self._model).where(self._model.project_id == project_id)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_status(self, status: str) -> list[Milestone]:
+    async def get_by_status(
+        self, status: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Milestone]:
         """Get milestones by status."""
         stmt = select(self._model).where(self._model.status == status)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -81,6 +87,8 @@ class MilestoneRepository(BaseRepository[Milestone, MilestoneCreate, MilestoneUp
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Milestone]:
         """Get milestones by workspace (filtering by project's workspace)."""
         stmt = (
@@ -92,6 +100,8 @@ class MilestoneRepository(BaseRepository[Milestone, MilestoneCreate, MilestoneUp
         # For work workspace, optionally filter by company
         if workspace == "work" and work_company:
             stmt = stmt.where(Project.work_company == work_company)
+
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
 
         if offset:
             stmt = stmt.offset(offset)

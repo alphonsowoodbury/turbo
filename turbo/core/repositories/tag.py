@@ -29,9 +29,12 @@ class TagRepository(BaseRepository[Tag, TagCreate, TagCreate]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_color(self, color: str) -> list[Tag]:
+    async def get_by_color(
+        self, color: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Tag]:
         """Get tags by color."""
         stmt = select(self._model).where(self._model.color == color)
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

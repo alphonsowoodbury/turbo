@@ -137,22 +137,33 @@ class InitiativeService:
         return self._to_response(initiative)
 
     async def get_all_initiatives(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[InitiativeResponse]:
         """Get all initiatives with optional pagination."""
         initiatives = await self._initiative_repository.get_all_with_relations(
-            limit=limit, offset=offset
+            limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order
         )
         return [self._to_response(i) for i in initiatives]
 
-    async def get_initiatives_by_project(self, project_id: UUID) -> list[InitiativeResponse]:
+    async def get_initiatives_by_project(
+        self,
+        project_id: UUID,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+    ) -> list[InitiativeResponse]:
         """Get all initiatives for a project."""
         # Verify project exists
         project = await self._project_repository.get_by_id(project_id)
         if not project:
             raise ProjectNotFoundError(project_id)
 
-        initiatives = await self._initiative_repository.get_by_project(project_id)
+        initiatives = await self._initiative_repository.get_by_project(
+            project_id, sort_by=sort_by, sort_order=sort_order
+        )
         return [self._to_response(i) for i in initiatives]
 
     async def update_initiative(
@@ -211,9 +222,13 @@ class InitiativeService:
             raise InitiativeNotFoundError(initiative_id)
         return success
 
-    async def get_initiatives_by_status(self, status: str) -> list[InitiativeResponse]:
+    async def get_initiatives_by_status(
+        self, status: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[InitiativeResponse]:
         """Get initiatives by status."""
-        initiatives = await self._initiative_repository.get_by_status(status)
+        initiatives = await self._initiative_repository.get_by_status(
+            status, sort_by=sort_by, sort_order=sort_order
+        )
         return [self._to_response(i) for i in initiatives]
 
     async def get_initiatives_by_workspace(
@@ -222,6 +237,8 @@ class InitiativeService:
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[InitiativeResponse]:
         """Get initiatives filtered by workspace."""
         initiatives = await self._initiative_repository.get_by_workspace(
@@ -229,6 +246,8 @@ class InitiativeService:
             work_company=work_company,
             limit=limit,
             offset=offset,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
         return [self._to_response(i) for i in initiatives]
 

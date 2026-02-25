@@ -18,7 +18,9 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(session, Initiative)
 
-    async def get_by_project(self, project_id: UUID) -> list[Initiative]:
+    async def get_by_project(
+        self, project_id: UUID, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Initiative]:
         """Get initiatives by project ID."""
         stmt = (
             select(self._model)
@@ -29,10 +31,13 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
             )
             .where(self._model.project_id == project_id)
         )
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_status(self, status: str) -> list[Initiative]:
+    async def get_by_status(
+        self, status: str, sort_by: str | None = None, sort_order: str = "desc"
+    ) -> list[Initiative]:
         """Get initiatives by status."""
         stmt = (
             select(self._model)
@@ -43,6 +48,7 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
             )
             .where(self._model.status == status)
         )
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -92,7 +98,11 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
         return result.scalar_one_or_none()
 
     async def get_all_with_relations(
-        self, limit: int | None = None, offset: int | None = None
+        self,
+        limit: int | None = None,
+        offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Initiative]:
         """Get all initiatives with relations loaded for accurate counts."""
         stmt = select(self._model).options(
@@ -100,6 +110,7 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
             selectinload(self._model.tags),
             selectinload(self._model.documents),
         )
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
         if limit is not None:
             stmt = stmt.limit(limit)
         if offset is not None:
@@ -113,6 +124,8 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
         work_company: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
     ) -> list[Initiative]:
         """Get initiatives by workspace (filtering by project's workspace).
 
@@ -132,6 +145,8 @@ class InitiativeRepository(BaseRepository[Initiative, InitiativeCreate, Initiati
         # For work workspace, optionally filter by company
         if workspace == "work" and work_company:
             stmt = stmt.where(Project.work_company == work_company)
+
+        stmt = self._apply_sorting(stmt, sort_by, sort_order)
 
         if offset:
             stmt = stmt.offset(offset)
