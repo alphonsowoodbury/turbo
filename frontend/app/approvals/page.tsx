@@ -13,7 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import type { ActionApproval } from "@/lib/types";
 
-const riskColors = {
+const riskColors: Record<string, string> = {
   safe: "bg-green-500/10 text-green-500",
   low: "bg-blue-500/10 text-blue-500",
   medium: "bg-yellow-500/10 text-yellow-500",
@@ -21,7 +21,7 @@ const riskColors = {
   critical: "bg-red-500/10 text-red-500",
 };
 
-const riskIcons = {
+const riskIcons: Record<string, typeof Shield> = {
   safe: Shield,
   low: Shield,
   medium: AlertTriangle,

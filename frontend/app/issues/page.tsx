@@ -21,14 +21,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   medium: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   high: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
   critical: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   open: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   in_progress: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   review: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
@@ -87,7 +87,7 @@ export default function IssuesPage() {
       case "created":
         return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       case "priority":
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
         return sorted.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
       case "title":
         return sorted.sort((a, b) => a.title.localeCompare(b.title));

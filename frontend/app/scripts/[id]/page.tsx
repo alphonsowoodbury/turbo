@@ -22,14 +22,14 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   running: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   completed: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   failed: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   cancelled: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
 };
 
-const statusIcons = {
+const statusIcons: Record<string, typeof Loader2> = {
   running: Loader2,
   completed: CheckCircle,
   failed: XCircle,

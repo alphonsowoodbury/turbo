@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const milestoneStatusColors = {
+const milestoneStatusColors: Record<string, string> = {
   planned: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
   in_progress: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   completed: "bg-green-500/10 text-green-500 hover:bg-green-500/20",

@@ -59,7 +59,7 @@ const getStatusColor = (status: string) => {
   }
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   completed: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   error: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
   typing: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
@@ -383,7 +383,7 @@ function AgentSessionsContent() {
                               variant="secondary"
                               className={cn(
                                 "text-xs capitalize gap-1",
-                                statusColors[session.status as keyof typeof statusColors]
+                                statusColors[session.status]
                               )}
                             >
                               {getStatusIcon(session.status)}

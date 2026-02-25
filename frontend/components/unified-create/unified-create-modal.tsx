@@ -19,7 +19,7 @@ const containerVariants = {
     scale: 1,
     transition: {
       duration: 0.2,
-      ease: [0.16, 1, 0.3, 1]
+      ease: [0.16, 1, 0.3, 1] as const
     }
   },
   exit: {

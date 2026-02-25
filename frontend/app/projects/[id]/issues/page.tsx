@@ -40,7 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   medium: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   high: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
@@ -97,7 +97,7 @@ export default function ProjectIssuesPage() {
       case "created":
         return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       case "priority":
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+        const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
         return sorted.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
       case "title":
         return sorted.sort((a, b) => a.title.localeCompare(b.title));

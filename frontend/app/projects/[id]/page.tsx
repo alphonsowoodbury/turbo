@@ -41,28 +41,28 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   medium: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   high: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
   critical: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   active: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   on_hold: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   completed: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   archived: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
 };
 
-const milestoneStatusColors = {
+const milestoneStatusColors: Record<string, string> = {
   planned: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
   in_progress: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   completed: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   cancelled: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const initiativeStatusColors = {
+const initiativeStatusColors: Record<string, string> = {
   planning: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
   in_progress: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   on_hold: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",

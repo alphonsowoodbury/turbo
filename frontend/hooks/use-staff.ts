@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Staff, StaffMessage, StaffConversationHistory } from "@/lib/api/staff";
+import type { Staff, StaffProfile, StaffMessage, StaffConversationHistory } from "@/lib/api/staff";
 import * as staffApi from "@/lib/api/staff";
 
 // Fetch all staff
@@ -26,7 +26,7 @@ export function useStaffMember(staffId: string) {
 
 // Fetch staff profile with analytics
 export function useStaffProfile(staffId: string) {
-  return useQuery({
+  return useQuery<StaffProfile>({
     queryKey: ["staff", staffId, "profile"],
     queryFn: () => staffApi.fetchStaffProfile(staffId),
     enabled: !!staffId,

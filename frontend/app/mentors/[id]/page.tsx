@@ -15,7 +15,7 @@ import { useMentor } from "@/hooks/use-mentors";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const workspaceColors = {
+const workspaceColors: Record<string, string> = {
   personal: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   freelance: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
   work: "bg-green-500/10 text-green-500 hover:bg-green-500/20",

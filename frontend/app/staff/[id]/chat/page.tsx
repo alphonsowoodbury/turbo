@@ -9,7 +9,7 @@ import { ArrowLeft, Shield, Users } from "lucide-react";
 import { useStaffProfile } from "@/hooks/use-staff";
 import { cn } from "@/lib/utils";
 
-const roleColors = {
+const roleColors: Record<string, string> = {
   leadership: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   domain_expert: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
 };

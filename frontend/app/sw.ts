@@ -1,6 +1,12 @@
 import { defaultCache } from "@serwist/next/worker";
 import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import {
+  CacheFirst,
+  ExpirationPlugin,
+  NetworkFirst,
+  Serwist,
+  StaleWhileRevalidate,
+} from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -18,65 +24,70 @@ const serwist = new Serwist({
   runtimeCaching: [
     // App Shell - Cache First
     {
-      urlPattern: /^\/_next\/static\/.*/i,
-      handler: "CacheFirst",
-      options: {
+      matcher: /^\/_next\/static\/.*/i,
+      handler: new CacheFirst({
         cacheName: "static-assets",
-        expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-        },
-      },
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 100,
+            maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+          }),
+        ],
+      }),
     },
     // HTML pages - Stale While Revalidate
     {
-      urlPattern: /^\/(?!api).*/i,
-      handler: "StaleWhileRevalidate",
-      options: {
+      matcher: /^\/(?!api).*/i,
+      handler: new StaleWhileRevalidate({
         cacheName: "pages-cache",
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
-        },
-      },
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 50,
+            maxAgeSeconds: 24 * 60 * 60, // 1 day
+          }),
+        ],
+      }),
     },
     // API GET requests - Network First with Cache Fallback
     {
-      urlPattern: /^\/api\/v1\/.*/i,
-      handler: "NetworkFirst",
+      matcher: /^\/api\/v1\/.*/i,
       method: "GET",
-      options: {
+      handler: new NetworkFirst({
         cacheName: "api-cache",
-        expiration: {
-          maxEntries: 200,
-          maxAgeSeconds: 5 * 60, // 5 minutes
-        },
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 200,
+            maxAgeSeconds: 5 * 60, // 5 minutes
+          }),
+        ],
         networkTimeoutSeconds: 10,
-      },
+      }),
     },
     // Images
     {
-      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-      handler: "CacheFirst",
-      options: {
+      matcher: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+      handler: new CacheFirst({
         cacheName: "images",
-        expiration: {
-          maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-        },
-      },
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 100,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          }),
+        ],
+      }),
     },
     // Google Fonts
     {
-      urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-      handler: "CacheFirst",
-      options: {
+      matcher: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+      handler: new CacheFirst({
         cacheName: "google-fonts",
-        expiration: {
-          maxEntries: 20,
-          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-        },
-      },
+        plugins: [
+          new ExpirationPlugin({
+            maxEntries: 20,
+            maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
+          }),
+        ],
+      }),
     },
     ...defaultCache,
   ],

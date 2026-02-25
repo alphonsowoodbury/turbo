@@ -22,7 +22,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   idle: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
   starting: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   processing: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
@@ -31,7 +31,7 @@ const statusColors = {
   error: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const statusIcons = {
+const statusIcons: Record<string, typeof Clock> = {
   idle: Clock,
   starting: Loader2,
   processing: Activity,
@@ -202,7 +202,7 @@ export default function AgentsPage() {
           ) : (
             <div className="space-y-3">
               {activeSessions.map((session: any) => {
-                const StatusIcon = statusIcons[session.status as keyof typeof statusIcons];
+                const StatusIcon = statusIcons[session.status];
                 return (
                   <Card key={session.session_id} className="cursor-pointer transition-colors hover:border-primary/50">
                     <CardContent className="pt-6">
@@ -211,7 +211,7 @@ export default function AgentsPage() {
                           <div className="flex items-center gap-2">
                             <Badge
                               variant="secondary"
-                              className={cn("text-xs", statusColors[session.status as keyof typeof statusColors])}
+                              className={cn("text-xs", statusColors[session.status])}
                             >
                               <StatusIcon className={cn("mr-1 h-3 w-3", session.status === "starting" ? "animate-spin" : "")} />
                               {session.status.replace("_", " ")}
@@ -275,13 +275,13 @@ export default function AgentsPage() {
                     </thead>
                     <tbody>
                       {recentSessions.map((session: any) => {
-                        const StatusIcon = statusIcons[session.status as keyof typeof statusIcons];
+                        const StatusIcon = statusIcons[session.status];
                         return (
                           <tr key={session.session_id} className="border-b last:border-0 hover:bg-muted/50">
                             <td className="px-4 py-3">
                               <Badge
                                 variant="secondary"
-                                className={cn("text-xs", statusColors[session.status as keyof typeof statusColors])}
+                                className={cn("text-xs", statusColors[session.status])}
                               >
                                 <StatusIcon className="mr-1 h-3 w-3" />
                                 {session.status}

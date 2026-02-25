@@ -32,14 +32,14 @@ import { toast } from "sonner";
 import { useIsFavorite, useToggleFavorite } from "@/hooks/use-favorites";
 import { SubagentButton } from "@/components/subagent/subagent-button";
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   medium: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   high: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
   critical: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   open: "bg-green-500/10 text-green-500 hover:bg-green-500/20",
   ready: "bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20",
   in_progress: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
@@ -48,7 +48,7 @@ const statusColors = {
   closed: "bg-gray-500/10 text-gray-500 hover:bg-gray-500/20",
 };
 
-const typeColors = {
+const typeColors: Record<string, string> = {
   feature: "bg-purple-500/10 text-purple-500",
   bug: "bg-red-500/10 text-red-500",
   task: "bg-blue-500/10 text-blue-500",
@@ -57,7 +57,7 @@ const typeColors = {
   discovery: "bg-indigo-500/10 text-indigo-500",
 };
 
-const discoveryStatusColors = {
+const discoveryStatusColors: Record<string, string> = {
   proposed: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
   researching: "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
   findings_ready: "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20",

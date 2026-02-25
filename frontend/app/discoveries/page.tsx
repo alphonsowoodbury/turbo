@@ -21,14 +21,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   low: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
   medium: "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20",
   high: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20",
   critical: "bg-red-500/10 text-red-500 hover:bg-red-500/20",
 };
 
-const discoveryStatusColors = {
+const discoveryStatusColors: Record<string, string> = {
   proposed: "bg-purple-500/10 text-purple-500 hover:bg-purple-500/20",
   researching: "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20",
   findings_ready: "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20",
