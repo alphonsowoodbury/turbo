@@ -2,7 +2,8 @@
 
 import { ReactNode } from "react";
 import { Header } from "./header";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { BreadcrumbItem } from "@/components/ui/breadcrumb";
 
 interface PageLayoutProps {
@@ -10,6 +11,7 @@ interface PageLayoutProps {
   children: ReactNode;
   isLoading?: boolean;
   error?: Error | null;
+  onRetry?: () => void;
   breadcrumbs?: BreadcrumbItem[];
   headerChildren?: ReactNode;
   titleControl?: ReactNode; // Control placed next to title (e.g., toggle button)
@@ -40,6 +42,7 @@ export function PageLayout({
   children,
   isLoading = false,
   error = null,
+  onRetry,
   breadcrumbs,
   headerChildren,
   titleControl,
@@ -70,11 +73,18 @@ export function PageLayout({
           </Header>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Failed to load content</p>
-            <p className="mt-1 text-xs text-destructive">
+          <div className="text-center max-w-md space-y-3">
+            <AlertCircle className="h-10 w-10 mx-auto text-destructive" />
+            <p className="text-sm font-medium">Failed to load content</p>
+            <p className="text-xs text-muted-foreground">
               {error instanceof Error ? error.message : "Unknown error"}
             </p>
+            {onRetry && (
+              <Button onClick={onRetry} variant="outline" size="sm">
+                <RotateCcw className="mr-2 h-3 w-3" />
+                Retry
+              </Button>
+            )}
           </div>
         </div>
       </div>
