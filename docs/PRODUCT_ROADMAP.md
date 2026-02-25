@@ -1,51 +1,64 @@
-# Turbo — Product Roadmap
+# Turbo Plan — Product Roadmap
 
-**Last updated:** 2026-02-24
+**Last updated:** 2026-02-25
 **Author:** Alphonso Woodbury
 **Status:** Draft — living document
 
 ---
 
-## 1. What Turbo Is
+## 1. What Turbo Plan Is
 
-Turbo is an AI-native project management platform. It combines Jira-level issue tracking with autonomous AI agents that operate within configurable guardrails.
+Turbo Plan is the control plane for Claude Code.
 
-**The gap it fills:** Jira has 20 years of project management features and zero AI integration. Claude Code and Cursor have powerful AI but zero project management. Turbo is the bridge — structured PM workflows where AI agents are first-class participants, not bolt-on copilots.
+You write code with Claude Code in the terminal. Turbo Plan is the web UI where you see what it's doing, manage work, set guardrails, and approve actions. Both hit the same hosted API.
 
-**Core thesis:** Teams adopting AI for software development need two things existing tools don't provide:
-1. **Visibility** — What are AI agents doing right now? What did they change? What did they decide?
-2. **Control** — Which projects can they touch? What tools can they use? What requires human approval?
+```
+┌──────────────────────────┐     ┌──────────────────────────┐
+│  Web UI (browser)         │     │  Claude Code (terminal)   │
+│  See work, set guardrails │     │  Write code, run agents   │
+│  Approve, review, plan    │     │  Triage, create issues    │
+└───────────┬──────────────┘     └───────────┬──────────────┘
+            │ HTTPS                           │ MCP tools
+            ▼                                 ▼
+         ┌─────────────────────────────────────┐
+         │  Turbo Plan API (hosted)             │
+         │  Single source of truth              │
+         └─────────────────────────────────────┘
+```
+
+**That's it.** No Cursor support. No generic MCP marketplace. No "works with any AI." Turbo Plan + Claude Code. Opinionated.
+
+### Why This Matters
+
+Claude Code is powerful but blind. It doesn't know what you're working on across projects. It doesn't remember what it did yesterday. It can't show you a dashboard of agent activity. It has no approval workflow, no guardrails UI, no audit trail.
+
+Turbo Plan gives Claude Code:
+- **Memory** — persistent issues, projects, milestones, decisions across sessions
+- **Structure** — prioritized work queue, ranked issues, project scoping
+- **Visibility** — real-time control room showing what agents are doing
+- **Guardrails** — approval gates, tool restrictions, budget limits, audit logging
 
 ---
 
-## 2. Target Users
+## 2. Architecture
 
-| Tier | Who | What They Need | When |
-|------|-----|---------------|------|
-| **Solo Dev** | Independent developer managing multiple projects with AI assistance | Force multiplier — 4 AI subagents acting as a team, guardrails they don't know they need, visibility into AI work | Now (Phase 0-1) |
-| **Small Team** | 2-10 developers using AI agents alongside human teammates | Shared workspace, role-based access, audit trail, agent activity dashboard | Phase 2-3 |
-| **Enterprise** | 50+ seat engineering org with compliance requirements | SSO/SAML, tenant isolation, SOC2-ready audit logging, admin controls, SLA | Phase 4-5 |
+### Deployed Now
 
----
+| Component | Where | What |
+|-----------|-------|------|
+| **API** | `turbo-plan.fly.dev` | FastAPI, 204 routes, PostgreSQL |
+| **Web UI** | `turbo-plan-web.fly.dev` | Next.js 15, React 19, 23 pages |
+| **MCP Server** | Local (Claude Code) | ~100 tools, talks to hosted API |
+| **Agent Module** | Local or server-side | 4 subagents via Claude Agent SDK |
 
-## 3. Current State
+### How It Works
 
-### What Exists and Works
+1. **You** open the web UI in a browser. Nothing to install.
+2. **Claude Code** connects to the API via MCP tools.
+3. Both see the same data. You manage work in the UI. Claude Code executes it.
+4. Agent actions flow through the API and appear in the UI in real-time.
 
-| Component | Status | Detail |
-|-----------|--------|--------|
-| **Data models** | 43 models, 141 schemas, 20 M2M tables | Rich entity graph with polymorphic assignment, tagging, dependencies |
-| **API** | 338 routes built, 7 routers mounted | Core PM endpoints active. 40 endpoint files dormant but implemented. |
-| **MCP Server** | 154 tools | Full coverage of all models. Production-grade. Primary daily interface. |
-| **Agent SDK** | 4 subagents | Triager, Planner, Reporter, Worker with least-privilege tool access |
-| **Guardrails** | 5 hook types | Project scoping, destructive command blocking, rate limiting, audit logging |
-| **Frontend** | 23 complete pages, 108 components | Next.js 15, React 19, Tailwind v4, Radix UI. 85% feature-complete. |
-| **Auth** | NextAuth (GitHub/Google OAuth) + API key middleware | Functional but single-tenant. No RBAC enforcement. |
-| **Real-time** | 2 WebSocket channels | Comment updates + agent activity feed |
-| **Docs site** | Astro/Starlight | Deployed on Fly.io. Quick-start and API reference. |
-| **Infrastructure** | Docker Compose (10 services) + Fly.io (3 apps) | PostgreSQL, Neo4j, Redis, Ollama, Claude webhook, docs watcher |
-
-### Model Domains
+### Data Model
 
 ```
 Core PM (11 models)          AI/Agents (10 models)
@@ -61,223 +74,125 @@ Core PM (11 models)          AI/Agents (10 models)
   ProjectEntityCounter         ReviewRequest
   TerminalSession
 
-Content (9 models)           Career (13 models)
-  Document                     Resume, ResumeSection
-  Blueprint                    Company, JobApplication
-  Note                         JobPosting, SearchCriteria
-  Literature                   JobSearchHistory, JobPostingMatch
-  PodcastShow                  WorkExperience, AchievementFact
-  PodcastEpisode               NetworkContact, Skill
-  Form, FormResponse
-  FormResponseAudit
-
-Infrastructure (5 models)
-  Setting
-  Webhook, WebhookDelivery
-  ActionApproval
-  CalendarEvent, ScriptRun
+Content (6 models)           Infrastructure (6 models)
+  Document                     Setting
+  Blueprint                    Webhook, WebhookDelivery
+  Note                         ActionApproval
+  Literature                   CalendarEvent
+  Form, FormResponse           ScriptRun
 ```
 
-### What's Missing
-
-| Gap | Impact | Blocks |
-|-----|--------|--------|
-| Multi-tenancy (zero) | Can't have multiple users without seeing each other's data | Teams, Enterprise |
-| RBAC enforcement | Roles defined on Staff model but never checked at API boundary | Teams, Enterprise |
-| Audit trail | No created_by/updated_by, no change history | Enterprise compliance |
-| Sorting on API | No sort parameter on any list endpoint | Frontend polish |
-| Full-text search | ILIKE pattern matching only, no PostgreSQL tsvector | Product quality |
-| Frontend tests | Zero | Product quality |
-| Backend coverage | ~60% (agent module at 0%) | Product quality |
+43 models, 204 API routes, ~100 MCP tools.
 
 ---
 
-## 4. Architecture
+## 3. Phased Roadmap
 
-### Current Architecture
+### Phase 0: Solo Dev Polish — COMPLETE
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Fly.io                                │
-│                                                              │
-│  turbo-plan.fly.dev          turbo-plan-web.fly.dev          │
-│  ┌──────────────┐            ┌──────────────────┐            │
-│  │  FastAPI API  │◄──REST───►│  Next.js Frontend │            │
-│  │  (338 routes) │           │  (23 pages)       │            │
-│  └──────┬───────┘            └──────────────────┘            │
-│         │                                                     │
-│  ┌──────┴───────┐                                            │
-│  │  PostgreSQL   │                                            │
-│  │  (54 tables)  │                                            │
-│  └──────────────┘                                            │
-└─────────────────────────────────────────────────────────────┘
-         ▲
-         │ MCP (stdio)
-         │
-┌────────┴────────┐
-│   Claude Code    │──► Agent SDK (4 subagents)
-│   (local CLI)    │──► 154 MCP tools
-└─────────────────┘
-```
+**Goal:** Make Turbo a working daily-driver for one developer.
 
-### Target Architecture (Phase 3+)
-
-```
-┌───────────────────────────────────────────────────────────────────┐
-│                           Fly.io                                   │
-│                                                                    │
-│  api.turbo.dev                    app.turbo.dev                    │
-│  ┌────────────────────┐           ┌──────────────────────┐         │
-│  │  FastAPI API        │◄──REST──►│  Next.js Frontend     │         │
-│  │  + JWT auth         │           │  + RBAC-aware views   │         │
-│  │  + tenant isolation │  ◄──WS──►│  + agent control room │         │
-│  │  + audit middleware │           │  + guardrails panel   │         │
-│  └────────┬───────────┘           └──────────────────────┘         │
-│           │                                                        │
-│  ┌────────┴───────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  PostgreSQL         │  │  Redis        │  │  Neo4j        │       │
-│  │  + row-level tenant │  │  + sessions   │  │  + knowledge  │       │
-│  │  + audit_log table  │  │  + rate limits │  │    graph      │       │
-│  └────────────────────┘  └──────────────┘  └──────────────┘       │
-│                                                                    │
-│  ┌────────────────────┐  ┌──────────────────────┐                  │
-│  │  Agent Worker       │  │  Webhook Service      │                  │
-│  │  + scoped tokens    │  │  + SSRF protection    │                  │
-│  │  + budget limits    │  │  + delivery tracking  │                  │
-│  │  + audit logging    │  │  + HMAC signing       │                  │
-│  └────────────────────┘  └──────────────────────┘                  │
-└───────────────────────────────────────────────────────────────────┘
-         ▲
-         │ MCP (stdio) + scoped API tokens
-         │
-┌────────┴────────┐
-│   Claude Code    │──► Agent SDK (N subagents, configurable)
-│   (local CLI)    │──► Per-project tool access
-└─────────────────┘
-```
+| Item | Status | Commit |
+|------|--------|--------|
+| Mount dormant endpoints (7 → 26 routers, 204 routes) | Done | `a9aa35f` |
+| Add sorting to all 11 list endpoints | Done | `953a263` |
+| Wire tags page to real API | Done | `953a263` |
+| Fix TypeScript errors (283 → 100) + track frontend/lib | Done | `8ef91f1` |
+| Error boundary, loading state, 404 page | Done | `aa214f3` |
 
 ---
 
-## 5. Phased Roadmap
+### Phase 1: The Product
 
-### Phase 0: Solo Dev Polish (You Are Here)
+**Goal:** Three UI experiences that make Turbo Plan worth opening every day.
 
-**Goal:** Make Turbo a daily-driver product for a single power user managing multiple projects with AI agents.
+#### 1.1 The Board
 
-**Duration:** 3-4 weeks
+Kanban + list view for issues. This is where you plan and track work.
 
-#### 0.1 Mount Dormant API Endpoints
+**Views:**
+- **Kanban** — Columns by status. Drag-and-drop. Swimlanes by priority or project.
+- **List** — Dense table with inline editing. Sort by any column. Bulk actions.
 
-40 endpoint files are fully implemented but not wired into the API router. Mount the ones needed for the frontend.
+**Key features:**
+- Saved views (filter + sort + grouping persisted)
+- Quick filters (my issues, blocked, unassigned, agent-created)
+- Keyboard navigation (j/k, enter, / to search)
+- Inline editing (click status/priority/assignee to change)
+- Visual indicator when an issue was created or modified by Claude Code
 
-**Mount immediately (frontend needs these):**
-- `agents.py` — Agent activity monitoring (frontend page exists)
-- `staff.py` — Domain expert management (frontend page exists)
-- `mentors.py` — Mentor conversations (frontend page exists)
-- `notes.py` — Quick notes (frontend page exists)
-- `work_queue.py` — Prioritized work queue (frontend page exists)
-- `blueprints.py` — Architecture templates (frontend page exists)
-- `settings.py` — App configuration (frontend page exists)
-- `worktrees.py` — Git worktree management (frontend page exists)
-- `scripts.py` — Script execution tracking (frontend page exists)
-- `approvals.py` or `action_approvals.py` — AI action approvals (frontend page exists)
-- `calendar.py` or `calendar_events.py` — Calendar (frontend page exists)
-- `discoveries.py` — Research tracking (frontend page exists)
-- `saved_filters.py` — Saved filter persistence (used by issues page)
-- `favorites.py` — Bookmarking (used by sidebar)
-- `forms.py` — Dynamic forms (used by issue detail tabs)
+**Data requirements:**
+- Sorting (done in Phase 0.2)
+- Cursor-based pagination for large lists
+- WebSocket push when agents modify issues
 
-**Defer (career domain — separate product later):**
-- `resumes.py`, `resume_generation.py`, `resume_tailoring.py`
-- `job_search.py`, `job_postings.py`, `job_applications.py`
-- `network_contacts.py`, `companies.py`, `work_experience.py`
-- `skills.py`, `email_templates.py`
+#### 1.2 The Control Room
 
-**Defer (infrastructure — not user-facing):**
-- `webhooks.py` — Internal service communication
-- `terminal.py` — Dev-only, security-gated
-- `ai.py` — Direct AI invocation (agents handle this)
-- `subagents.py` — Agent-to-agent (internal)
-- `group_discussion.py` — Staff-only feature
+Real-time visibility into what Claude Code agents are doing. This is the differentiator.
 
-#### 0.2 Add API Sorting
+**Layout:**
+- **Activity stream** — Live feed: "Triager analyzed 5 issues", "Worker started TURBO-42"
+- **Active sessions** — Running agent cards: current tool call, tokens used, cost, elapsed time
+- **Stats** — Today's agent runs, total cost, issues created/closed by agents
 
-Every list endpoint currently returns unsorted results. Add `sort_by` and `sort_order` query parameters to all list endpoints.
+**Key features:**
+- Click any session → full tool call timeline
+- Cost tracking per session and per day
+- Historical view (filter by date, agent type, project)
 
-**Priority endpoints:**
-- `GET /issues` — sort by priority, updated_at, created_at, work_rank
-- `GET /projects` — sort by name, updated_at, status
-- `GET /documents` — sort by title, updated_at
-- All other list endpoints — sort by updated_at default
+**Data:** AgentSession model exists. Needs tool call history enrichment and cost tracking.
 
-#### 0.3 Frontend Fixes
+#### 1.3 The Guardrails Panel
 
-- Wire tags page to real API (currently mock data)
-- Complete mentor create dialog
-- Fill in project detail placeholder tabs (or remove them)
-- Fix TypeScript build errors (currently `ignoreBuildErrors: true`)
-- Fix ESLint errors (currently `ignoreDuringBuilds: true`)
+Configuration UI for Claude Code agent permissions. This is the enterprise sell even at solo-dev stage.
 
-#### 0.4 Quality Baseline
+**Sections:**
+- **Agent config** — Which subagents enabled, per-agent tool allowlists, budget/turn limits
+- **Project scoping** — Which projects each agent can access
+- **Approval rules** — Which actions require human approval, auto-approve rules, timeout
+- **Audit viewer** — Searchable audit log of all agent actions
 
-- Enable TypeScript strict mode incrementally
-- Fix all build warnings
-- Add error boundaries to all pages
-- Add loading skeletons to all data-fetching pages
+**Data:** Hook system exists (5 types). Needs UI to configure rather than env vars.
+
+#### 1.4 Claude Code Integration Tightening
+
+- **Agent tokens** — Scoped API tokens for MCP server (project-limited, time-limited)
+- **Real-time sync** — WebSocket push so UI updates instantly when Claude Code acts
+- **Approval flow** — Claude Code requests approval → notification in UI → approve/deny → Claude Code continues
+- **Session linking** — Link Claude Code terminal sessions to Turbo Plan agent sessions
 
 ---
 
-### Phase 1: Foundation (Auth, Tenancy, Audit)
+### Phase 2: Auth & Foundation
 
-**Goal:** The architectural foundation that everything after this depends on. No user-visible features — all plumbing.
+**Goal:** The plumbing needed before anyone else can use it.
 
-**Duration:** 4-6 weeks
-
-#### 1.1 User and Organization Models
-
-New models:
+#### 2.1 User Model
 
 ```
+User
+  id, email, name, avatar_url
+  auth_provider: github | google
+  auth_provider_id: str
+
 Organization
-  id: UUID
-  name: str
-  slug: str (unique, URL-safe)
-  plan: enum (free, pro, enterprise)
-  created_at, updated_at
+  id, name, slug
+  plan: free | pro
 
 OrganizationMember
-  id: UUID
-  org_id: FK → Organization
-  user_id: FK → User
-  role: enum (owner, admin, member, viewer, agent)
-  invited_at, accepted_at
-
-User
-  id: UUID
-  email: str (unique)
-  name: str
-  avatar_url: str | None
-  auth_provider: enum (github, google, email)
-  auth_provider_id: str
-  created_at, updated_at
+  org_id, user_id, role: owner | admin | member | viewer
 ```
 
-Every existing model gets `org_id: FK → Organization` with a NOT NULL constraint after migration.
+Every existing model gets `org_id` with NOT NULL after migration.
 
-#### 1.2 JWT Authentication
+#### 2.2 JWT Authentication
 
-Replace static API key with proper token auth:
+- OAuth (GitHub/Google) → JWT access token (15 min) + refresh token (7 days)
+- API: `Authorization: Bearer <jwt>` with user_id and org_id in claims
+- MCP: Scoped token passed via MCP server config
+- Keep API key fallback for local dev
 
-- **Login flow:** OAuth (GitHub/Google) → JWT access token (15 min) + refresh token (7 days)
-- **API auth:** `Authorization: Bearer <jwt>` with user_id and org_id in claims
-- **Agent auth:** Scoped API tokens with explicit tool permissions and budget limits
-- **MCP auth:** Token passed via MCP server config, scoped to org + project(s)
-
-Keep API key middleware as fallback for backward compatibility (local dev, CI).
-
-#### 1.3 Row-Level Tenant Isolation
-
-All repository queries filter by `org_id` automatically:
+#### 2.3 Row-Level Tenant Isolation
 
 ```python
 class TenantRepository(BaseRepository[T]):
@@ -285,331 +200,101 @@ class TenantRepository(BaseRepository[T]):
         return select(self._model).where(self._model.org_id == self._current_org_id)
 ```
 
-No query can return data from another org. This is enforced at the repository layer, not the endpoint layer — defense in depth.
+No query returns data from another org. Enforced at repository layer.
 
-#### 1.4 RBAC Enforcement
-
-Permission matrix:
-
-| Action | Owner | Admin | Member | Viewer | Agent |
-|--------|-------|-------|--------|--------|-------|
-| Create projects | Yes | Yes | Yes | No | No |
-| Create issues | Yes | Yes | Yes | No | Scoped |
-| Update issues | Yes | Yes | Own | No | Scoped |
-| Delete anything | Yes | Yes | No | No | No |
-| Manage members | Yes | Yes | No | No | No |
-| Configure agents | Yes | Yes | No | No | No |
-| View agent activity | Yes | Yes | Yes | Yes | No |
-| View audit log | Yes | Yes | No | No | No |
-
-Enforced via middleware that injects `current_user` and `current_org` into request state.
-
-#### 1.5 Audit Trail
-
-New model:
+#### 2.4 Audit Trail
 
 ```
 AuditLog
-  id: UUID
-  org_id: FK → Organization
-  user_id: FK → User (nullable — system/agent actions)
-  agent_session_id: FK → AgentSession (nullable)
-  action: enum (create, update, delete, login, agent_tool_call, ...)
-  entity_type: str
-  entity_id: UUID
-  changes: JSON (before/after diff for updates)
-  ip_address: str
-  user_agent: str
-  timestamp: datetime
+  org_id, user_id, agent_session_id (nullable)
+  action: create | update | delete | agent_tool_call | ...
+  entity_type, entity_id
+  changes: JSON (before/after diff)
+  timestamp
 ```
 
-Automatically populated via service layer decorator — no manual logging in endpoints.
-
-#### 1.6 Database Migrations
-
-- Add org_id to all 43 existing models
-- Create Organization, OrganizationMember, User, AuditLog tables
-- Migrate existing data to a default org (single-user → single-org migration)
-- Add indexes on org_id for all tables
-
----
-
-### Phase 2: The Product (Core UI)
-
-**Goal:** Three UI experiences that make Turbo a product, not a tool.
-
-**Duration:** 4-6 weeks
-
-#### 2.1 The Board
-
-Jira-level issue management. This is where PMs and developers spend most of their time.
-
-**Views:**
-- **Kanban** — Columns by status (backlog, todo, in_progress, in_review, done). Drag-and-drop. Swimlanes by assignee or priority.
-- **List** — Dense table view with inline editing. Sort by any column. Bulk actions.
-- **Timeline** — Gantt-style view of milestones and initiatives with issue bars.
-- **Calendar** — Issues by due date, milestones as markers.
-
-**Features:**
-- Saved views (filter + sort + grouping persisted per user)
-- Quick filters (my issues, recently updated, blocked, unassigned)
-- Keyboard navigation (j/k to move, enter to open, / to search)
-- Inline editing (click status/priority/assignee to change without opening detail)
-- Bulk operations (select multiple → change status, assign, tag, move to milestone)
-
-**Data requirements:**
-- API sorting (Phase 0.2)
-- Cursor-based pagination for large issue lists
-- WebSocket push for real-time board updates when agents modify issues
-
-#### 2.2 The Control Room
-
-Real-time visibility into what AI agents are doing. This is Turbo's differentiator.
-
-**Layout:**
-- **Activity stream** (left) — Live feed of agent actions: "Triager analyzed 5 issues in project X", "Worker started work on TURBO-42", "Planner created 3 issues for feature Y"
-- **Active sessions** (center) — Cards for each running agent showing: current tool call, tokens used, cost so far, time elapsed
-- **Stats dashboard** (right) — Today's metrics: total agent runs, total cost, issues created/updated by agents, approval queue depth
-
-**Features:**
-- Click any agent session → drill into full tool call timeline
-- Pause/cancel running agent sessions
-- Cost alerts (configurable threshold)
-- Historical view (filter by date range, agent type, project)
-
-**Data requirements:**
-- Agent activity WebSocket channel (exists)
-- AgentSession model with tool call history (exists, needs enrichment)
-- Cost aggregation queries
-
-#### 2.3 The Guardrails Panel
-
-Configuration UI for AI agent permissions and controls. This is the enterprise sell.
-
-**Sections:**
-
-**Agent Configuration:**
-- Which subagents are enabled
-- Per-agent tool allowlists (checkbox matrix: agent × tool)
-- Per-agent budget limits (max $/run, max $/day)
-- Per-agent turn limits
-
-**Project Scoping:**
-- Which projects each agent can access
-- Cross-project access rules
-- Default scope for new agents
-
-**Approval Rules:**
-- Which actions require human approval before execution
-- Auto-approve rules (e.g., "auto-approve issue updates under priority=low")
-- Approval timeout (auto-reject after N hours)
-- Notification preferences (email, WebSocket, both)
-
-**Audit Viewer:**
-- Searchable, filterable audit log
-- Export to CSV/JSON
-- Retention policy configuration
-
-**Rate Limits:**
-- Per-agent rate limits
-- Per-tool rate limits
-- Global org rate limits
-- Current usage visualization
+Auto-populated via service decorator. No manual logging.
 
 ---
 
 ### Phase 3: Teams
 
-**Goal:** Multiple humans collaborating in a shared workspace with AI teammates.
+**Goal:** Multiple developers sharing a workspace with Claude Code as AI teammate.
 
-**Duration:** 4-6 weeks
-
-#### 3.1 Multi-User Workspace
-
-- Invite flow (email invite → accept → join org)
-- Member management UI (roles, permissions, deactivation)
-- User avatars and presence indicators
-- Assignment (issues, milestones to specific users)
-- @mentions in comments with notification
-
-#### 3.2 Notifications
-
-- In-app notification center
-- Email notifications (configurable per event type)
-- WebSocket push for real-time alerts
-- Notification preferences per user
-
-#### 3.3 Activity Feed
-
-- Per-project activity timeline (human + agent actions interleaved)
-- "What happened while I was away" summary (AI-generated)
-- @mention notifications
-- Comment threads with real-time updates
-
-#### 3.4 AI as Team Member
-
-- Agents appear in team member list with "AI" badge
-- Assign issues to agents (triggers autonomous work)
-- Agent-generated comments attributed to agent identity
-- Review requests from agents to humans (exists as ReviewRequest model)
+- Invite flow, member management, roles
+- Assignment (issues/milestones to specific users)
+- @mentions in comments with notifications
+- Agent appears in team list with "AI" badge
+- Assign issues to agents → triggers autonomous work
+- "What happened while I was away" AI summary
+- In-app + email notifications
 
 ---
 
 ### Phase 4: Enterprise
 
-**Goal:** Features required for enterprise sales. Compliance, security, admin control.
+**Goal:** Features for enterprise sales.
 
-**Duration:** 6-8 weeks
-
-#### 4.1 SSO/SAML
-
-- SAML 2.0 integration (Okta, Azure AD, OneLogin)
-- SCIM provisioning (auto-create/deactivate users from IdP)
-- Enforce SSO (disable password/OAuth login for org)
-
-#### 4.2 Advanced RBAC
-
-- Custom roles (beyond owner/admin/member/viewer)
-- Per-project roles (admin on Project A, viewer on Project B)
-- Agent permission templates (reusable configurations)
-- IP allowlists per org
-
-#### 4.3 Compliance
-
-- SOC2-ready audit logging (immutable, shipped to external store)
-- Data retention policies (auto-archive after N days)
-- Data export (full org export for portability)
-- GDPR: user data deletion, consent tracking
-- Audit log tamper detection (hash chains)
-
-#### 4.4 Admin Console
-
-- Org-wide agent usage dashboard
-- Cost allocation by project/team/agent
-- Usage quotas and billing integration
-- Security event monitoring (failed logins, permission escalations)
+- SSO/SAML (Okta, Azure AD)
+- SCIM provisioning
+- Custom roles, per-project permissions
+- SOC2-ready audit logging
+- Data retention policies, GDPR export/deletion
+- Admin console with cost allocation and usage quotas
 
 ---
 
-### Phase 5: Platform
+## 4. Technical Debt
 
-**Goal:** Extensibility that turns Turbo from a product into a platform.
-
-**Duration:** Ongoing
-
-#### 5.1 Custom Agents
-
-- Agent builder UI (define name, tools, prompt, model, budget)
-- Agent marketplace (share agent configurations across orgs)
-- Custom tool definitions (bring your own MCP tools)
-- Webhook-triggered agents (event → agent run)
-
-#### 5.2 Integrations
-
-- GitHub/GitLab: sync issues, PRs, branches
-- Slack: notifications, slash commands, agent triggers
-- Linear/Jira: import/export, two-way sync
-- CI/CD: agent-triggered deployments with approval gates
-
-#### 5.3 API Platform
-
-- Public API with developer docs
-- API keys with scoped permissions
-- Webhooks for external consumers
-- Rate limiting tiers by plan
+| # | Item | Phase | Status |
+|---|------|-------|--------|
+| 1 | Mount dormant endpoints | 0 | Done |
+| 2 | Add sorting to list endpoints | 0 | Done |
+| 3 | Fix TypeScript build errors | 0 | 100 remaining |
+| 4 | Track frontend/lib in git | 0 | Done |
+| 5 | Error boundaries | 0 | Done |
+| 6 | Cursor-based pagination | 1 | — |
+| 7 | Full-text search (tsvector) | 1 | — |
+| 8 | Agent module tests (0% coverage) | 1 | — |
+| 9 | Frontend tests (0% coverage) | 2 | — |
+| 10 | Centralize transaction management | 2 | — |
 
 ---
 
-## 6. Feature Domain Strategy
+## 5. Competitive Positioning
 
-### Core PM — Ship Now
-
-The 11 Core PM models + 10 AI/Agent models are the product. Every phase builds on these.
-
-### Career — Separate Product
-
-The 13 career models (Resume, JobApplication, Company, JobPosting, etc.) represent a distinct product: **AI-powered job search and application management**. This is valuable but it's not project management.
-
-**Recommendation:** Extract career features into a separate module/product line. Don't mount career endpoints in the PM product. The MCP server can still expose them for personal use via Claude Code, but the web UI should not include job search features in the enterprise PM product.
-
-Career models can become "Turbo Career" or be kept as a personal-use MCP-only feature.
-
-### Content — Selective Inclusion
-
-Content models (Documents, Blueprints, Notes) are core to PM — keep them.
-
-Podcasts and Literature are personal knowledge management — same treatment as Career. Keep in MCP, exclude from enterprise PM UI.
-
----
-
-## 7. Technical Debt to Resolve
-
-Ordered by dependency (must do earlier items before later ones).
-
-| # | Item | Phase | Why |
-|---|------|-------|-----|
-| 1 | Mount 15 dormant endpoint routers | 0 | Frontend pages exist with no backend |
-| 2 | Add sorting to all list endpoints | 0 | Board views need sort |
-| 3 | Fix TypeScript/ESLint build errors | 0 | Can't iterate on broken builds |
-| 4 | Add cursor-based pagination | 1 | Offset pagination breaks on large datasets |
-| 5 | Add full-text search (PostgreSQL tsvector) | 1 | Pattern matching doesn't scale |
-| 6 | Centralize transaction management (M3 from REVIEW.md) | 1 | Inconsistent commit/rollback behavior |
-| 7 | Agent module test suite | 1 | 0% coverage on critical AI path |
-| 8 | Frontend test infrastructure (Vitest + Testing Library) | 2 | 0% coverage on UI |
-| 9 | Dependency pinning / lockfile | 2 | Reproducible builds |
-| 10 | Resolve 9 TODO items in production code | 2-3 | Tech debt cleanup |
-
----
-
-## 8. Metrics
-
-### Phase 0-1 (Solo Dev)
-- Daily active use (are you using the UI daily?)
-- Agent runs per day
-- Issues created/closed per week (human vs. agent)
-- Cost per agent run (trending down = good)
-
-### Phase 2-3 (Teams)
-- Users per org
-- Agent actions per user per day
-- Approval queue depth (should stay low — means rules are well-configured)
-- Time to resolve issues (human-only vs. agent-assisted)
-
-### Phase 4-5 (Enterprise)
-- Orgs onboarded
-- Seats per org
-- Monthly recurring revenue
-- Agent adoption rate (% of issues touched by agents)
-- Compliance audit pass rate
-
----
-
-## 9. Competitive Positioning
-
-| Feature | Jira | Linear | Turbo |
-|---------|------|--------|-------|
+| Feature | Jira | Linear | Turbo Plan |
+|---------|------|--------|------------|
 | Issue tracking | Deep | Clean | Deep + AI-aware |
-| AI agents | Atlassian Intelligence (bolt-on) | None | First-class participants |
-| Agent guardrails | None | None | Configurable per agent/project |
+| AI agents | Bolt-on chatbot | None | First-class team members |
+| Agent guardrails | None | None | Per-agent/project config |
 | Agent visibility | None | None | Real-time control room |
-| Human-in-the-loop | None | None | Approval gates, review requests |
-| MCP integration | None | None | 154-tool server |
-| Self-hosted | Data Center (expensive) | No | Docker Compose |
-| Price | $8-16/user/mo | $8-10/user/mo | TBD |
+| Approval gates | None | None | Human-in-the-loop |
+| Claude Code integration | None | None | Native MCP + scoped tokens |
+| Self-hosted option | Expensive | No | Docker Compose |
 
-**Turbo's wedge:** The only PM tool where AI agents are team members with configurable permissions, not features behind a chatbot button.
-
----
-
-## 10. Open Questions
-
-1. **Pricing model:** Per-seat? Per-agent-run? Usage-based? Hybrid?
-2. **Self-hosted vs. cloud:** Offer both? Cloud-first with self-hosted for enterprise?
-3. **Career features:** Separate product? Module within Turbo? Kill entirely for enterprise focus?
-4. **Mobile:** PWA sufficient? Or invest in React Native later?
-5. **Agent model flexibility:** Lock to Claude? Support OpenAI/Gemini agents? Model-agnostic?
-6. **Open source:** Core open source with enterprise features paid? Fully proprietary?
+**Turbo Plan's wedge:** The only PM tool built specifically as a control plane for Claude Code.
 
 ---
 
-*This is a living document. Update it as decisions are made and phases are completed.*
+## 6. Decisions Made
+
+| Decision | Choice | Date | Rationale |
+|----------|--------|------|-----------|
+| AI integration scope | Claude Code only | 2026-02-25 | Opinionated > generic. One integration done well beats five done poorly. |
+| Career features | Removed | 2026-02-24 | Not PM. 13 models, ~14K LOC removed. |
+| Deployment model | Hosted SaaS | 2026-02-25 | Users access web UI via browser. Nothing to install. |
+| MCP server | Local, connects to hosted API | 2026-02-25 | Claude Code runs locally, needs local MCP. API is the bridge. |
+
+---
+
+## 7. Open Questions
+
+1. **Pricing:** Per-seat? Per-agent-run? Free tier + paid for teams?
+2. **Self-hosted:** Offer alongside cloud for enterprise? Docker Compose already works.
+3. **Mobile:** PWA sufficient or invest in native later?
+4. **Open source:** Core open source with enterprise paid? Fully proprietary?
+
+---
+
+*This is a living document. Updated as decisions are made and phases complete.*
