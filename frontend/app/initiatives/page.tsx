@@ -119,7 +119,7 @@ function InitiativesContent() {
       error={error}
       breadcrumbs={filteredProject ? [{ label: filteredProject.name, href: `/projects/${filteredProject.id}` }] : undefined}
     >
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         {/* Controls Bar */}
         <div className="mb-4 flex items-center justify-between">
           <Button disabled>
@@ -164,7 +164,7 @@ function InitiativesContent() {
         {showFilters && (
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Project</label>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>

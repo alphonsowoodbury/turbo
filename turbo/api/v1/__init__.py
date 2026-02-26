@@ -12,6 +12,7 @@ from turbo.api.v1.endpoints import (
     decisions,
     dependencies,
     documents,
+    events,
     favorites,
     forms,
     group_discussion,
@@ -72,6 +73,9 @@ router.include_router(script_runs.router, prefix="/scripts", tags=["scripts"])
 
 # Settings & Infrastructure
 router.include_router(settings.router, tags=["settings"])  # has prefix
+
+# Real-time Events
+router.include_router(events.router, prefix="/events", tags=["events"])
 
 # WebSocket (no prefix — routes define their own paths)
 router.include_router(websocket.router)

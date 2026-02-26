@@ -14,7 +14,7 @@ export default function ProjectsPage() {
       createLabel="New Project"
       onCreateClick={() => setCreateDialogOpen(true)}
     >
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         <ProjectList />
       </div>
 

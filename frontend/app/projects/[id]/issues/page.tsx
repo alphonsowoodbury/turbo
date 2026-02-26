@@ -167,7 +167,7 @@ export default function ProjectIssuesPage() {
         { label: project?.name || "Project", href: `/projects/${projectId}` },
       ]}
     >
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 page-padding">
 
         {/* Issues Card */}
         <Card>

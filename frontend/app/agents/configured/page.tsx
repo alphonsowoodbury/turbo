@@ -42,7 +42,7 @@ export default function ConfiguredAgentsPage() {
       title="Configured Agents"
       isLoading={configuredLoading}
     >
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         <div className="mb-6">
           <p className="text-sm text-muted-foreground">
             AI agents configured with specific capabilities and system prompts

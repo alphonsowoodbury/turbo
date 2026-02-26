@@ -52,7 +52,7 @@ export default function ScriptRunDetailPage() {
   if (isLoading || !scriptRun) {
     return (
       <PageLayout title="Script Run Details" isLoading={true}>
-        <div className="flex-1 p-6" />
+        <div className="flex-1 page-padding" />
       </PageLayout>
     );
   }
@@ -61,7 +61,7 @@ export default function ScriptRunDetailPage() {
 
   return (
     <PageLayout title="Script Run Details" isLoading={false}>
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         <div className="mb-6">
           <Button
             variant="ghost"

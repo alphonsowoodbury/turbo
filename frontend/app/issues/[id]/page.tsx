@@ -100,7 +100,7 @@ export default function IssueDetailPage() {
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-6 pb-0">
+        <div className="flex-1 overflow-y-auto space-y-4 page-padding pb-0">
           {/* Issue Metadata */}
           <div className="flex flex-wrap items-center gap-2">
           <Button
@@ -236,7 +236,7 @@ export default function IssueDetailPage() {
 
         {/* Tabbed Content */}
         <Tabs defaultValue="dependencies" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="dependencies">Dependencies</TabsTrigger>
             <TabsTrigger value="forms">Forms</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>

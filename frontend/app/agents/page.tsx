@@ -74,7 +74,7 @@ export default function AgentsPage() {
       title="AI Agents"
       isLoading={activeLoading && recentLoading}
     >
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         {/* Connection Status */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">

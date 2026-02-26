@@ -124,7 +124,7 @@ export default function TagsPage() {
       isLoading={isLoading}
       error={error ?? null}
     >
-      <div className="p-6">
+      <div className="page-padding">
         {/* Controls Bar */}
         <div className="mb-4 flex items-center justify-between">
           {/* Create Button */}
@@ -189,7 +189,7 @@ export default function TagsPage() {
         {showFilters && (
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 {/* Color Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Color</label>

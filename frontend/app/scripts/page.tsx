@@ -59,7 +59,7 @@ export default function ScriptsPage() {
       title="Python Scripts"
       isLoading={runningLoading && recentLoading}
     >
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         <div className="mb-6">
           <p className="text-sm text-muted-foreground">
             Monitor Python script executions and track their performance

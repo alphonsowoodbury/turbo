@@ -121,7 +121,7 @@ export default function DiscoveriesPage() {
 
   return (
     <PageLayout title="Discovery" isLoading={isLoading} error={error}>
-      <div className="flex-1 p-6">
+      <div className="flex-1 page-padding">
         {/* Controls Bar */}
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export default function DiscoveriesPage() {
         {showFilters && (
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Project</label>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>

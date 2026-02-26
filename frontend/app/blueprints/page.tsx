@@ -70,7 +70,7 @@ export default function BlueprintsPage() {
       title="Blueprints"
       isLoading={isLoading}
     >
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 page-padding">
         {/* Header Button */}
         <div className="flex justify-end">
           <Button onClick={() => setCreateDialogOpen(true)}>

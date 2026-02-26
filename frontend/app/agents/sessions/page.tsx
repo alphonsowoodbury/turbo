@@ -190,7 +190,7 @@ function AgentSessionsContent() {
       title="Agent Sessions"
       isLoading={isLoading}
     >
-      <div className="p-6">
+      <div className="page-padding">
         {/* Agent Filter Badge */}
         {selectedAgent !== "all" && (
           <div className="mb-4">
@@ -263,7 +263,7 @@ function AgentSessionsContent() {
         {showFilters && (
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -441,7 +441,7 @@ export default function AgentSessionsPage() {
   return (
     <Suspense fallback={
       <PageLayout title="Agent Sessions" isLoading={true}>
-        <div className="p-6">
+        <div className="page-padding">
           <div className="flex h-64 items-center justify-center">
             <div className="text-sm text-muted-foreground">Loading sessions...</div>
           </div>

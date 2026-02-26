@@ -221,4 +221,28 @@
       display: none !important;
     }
   }
+
+  /* Responsive page padding */
+  .page-padding {
+    padding: 0.75rem;
+  }
+
+  @media (min-width: 640px) {
+    .page-padding {
+      padding: 1rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .page-padding {
+      padding: 1.5rem;
+    }
+  }
+
+  /* Touch active state for non-hover devices */
+  @media (hover: none) {
+    .touch-active:active {
+      background-color: oklch(var(--accent) / 0.5);
+    }
+  }
 }

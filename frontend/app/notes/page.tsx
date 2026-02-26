@@ -404,7 +404,7 @@ export default function NotesPage() {
   return (
     <Suspense fallback={
       <PageLayout title="Notes" isLoading={true}>
-        <div className="p-6">
+        <div className="page-padding">
           <p>Loading notes...</p>
         </div>
       </PageLayout>

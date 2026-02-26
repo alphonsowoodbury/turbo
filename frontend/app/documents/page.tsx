@@ -484,7 +484,7 @@ export default function DocumentsPage() {
   return (
     <Suspense fallback={
       <PageLayout title="Documents" isLoading={true}>
-        <div className="p-6">
+        <div className="page-padding">
           <p>Loading documents...</p>
         </div>
       </PageLayout>

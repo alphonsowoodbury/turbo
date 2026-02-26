@@ -130,7 +130,7 @@ export default function WorkQueuePage() {
       description="Prioritized list of issues to work on"
       isLoading={isLoading}
     >
-      <div className="flex-1 p-6 space-y-6">
+      <div className="flex-1 page-padding space-y-6">
         {/* Next Issue Card */}
         {nextIssue && (
           <Card className="border-2 border-primary">

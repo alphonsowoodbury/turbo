@@ -113,7 +113,7 @@ function WorktreesContent() {
       title="Git Worktrees"
       isLoading={isLoading}
     >
-      <div className="p-6">
+      <div className="page-padding">
         {/* Controls Bar */}
         <div className="mb-4 flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ function WorktreesContent() {
         {showFilters && (
           <Card className="mb-4">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -293,7 +293,7 @@ export default function WorktreesPage() {
   return (
     <Suspense fallback={
       <PageLayout title="Git Worktrees" isLoading={true}>
-        <div className="p-6">
+        <div className="page-padding">
           <div className="flex h-64 items-center justify-center">
             <div className="text-sm text-muted-foreground">Loading worktrees...</div>
           </div>

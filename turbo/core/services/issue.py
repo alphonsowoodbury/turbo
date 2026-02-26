@@ -18,6 +18,7 @@ from turbo.core.schemas.graph import GraphNodeCreate
 from turbo.core.schemas.work_log import WorkLogCreate, WorkLogResponse
 from turbo.core.services.graph import GraphService
 from turbo.core.utils import strip_emojis
+from turbo.core.services.event_bus import event_bus
 from turbo.utils.config import get_settings
 from turbo.utils.exceptions import IssueNotFoundError, ProjectNotFoundError
 
@@ -179,7 +180,15 @@ class IssueService:
         # Index in knowledge graph for semantic search
         await self._index_issue_in_graph(issue)
 
-        return IssueResponse.model_validate(issue)
+        response = IssueResponse.model_validate(issue)
+
+        # Emit event for real-time updates
+        try:
+            await event_bus.publish("issue.created", response.model_dump(mode="json"))
+        except Exception as e:
+            logger.warning("Failed to emit issue.created event: %s", e)
+
+        return response
 
     async def get_issue_by_id(self, issue_id: UUID) -> IssueResponse:
         """Get issue by ID with dependencies."""
@@ -290,13 +299,27 @@ class IssueService:
                 # Log webhook errors but don't fail the update
                 logger.error(f"Failed to emit issue.ready webhook for issue {issue_id}: {str(e)}")
 
-        return IssueResponse.model_validate(issue)
+        response = IssueResponse.model_validate(issue)
+
+        # Emit event for real-time updates
+        try:
+            await event_bus.publish("issue.updated", response.model_dump(mode="json"))
+        except Exception as e:
+            logger.warning("Failed to emit issue.updated event: %s", e)
+
+        return response
 
     async def delete_issue(self, issue_id: UUID) -> bool:
         """Delete an issue."""
         success = await self._issue_repository.delete(issue_id)
         if not success:
             raise IssueNotFoundError(issue_id)
+
+        try:
+            await event_bus.publish("issue.deleted", {"id": str(issue_id)})
+        except Exception as e:
+            logger.warning("Failed to emit issue.deleted event: %s", e)
+
         return success
 
     async def assign_issue(self, issue_id: UUID, assignee: str) -> IssueResponse:

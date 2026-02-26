@@ -1,6 +1,6 @@
 # Turbo Plan — Product Roadmap
 
-**Last updated:** 2026-02-25
+**Last updated:** 2026-02-26
 **Author:** Alphonso Woodbury
 **Status:** Draft — living document
 
@@ -58,6 +58,45 @@ Turbo Plan gives Claude Code:
 3. Both see the same data. You manage work in the UI. Claude Code executes it.
 4. Agent actions flow through the API and appear in the UI in real-time.
 
+### Three AI Execution Paths
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Turbo Plan API (hosted)                       │
+│                                                                 │
+│  Path 1: Server-side Claude (headless)                          │
+│  ├─ Staff/Mentor chat — ideation, refinement, Q&A              │
+│  ├─ Triage agent — analyze + prioritize incoming issues         │
+│  ├─ Summary agent — "what happened while you were away"         │
+│  └─ Cheap, always available, no user machine required           │
+│                                                                 │
+│  Path 2: Local Claude Code (user's terminal)                    │
+│  ├─ Code writing, git operations, file system access            │
+│  ├─ MCP tools for reading/writing Turbo Plan data               │
+│  ├─ Expensive, runs on user hardware, needs local context       │
+│  └─ Connected via MCP server → hosted API                       │
+│                                                                 │
+│  Path 3: Event Bus (SSE)                                        │
+│  ├─ API emits events on every write (issue.created, etc.)       │
+│  ├─ Web UI subscribes via SSE → real-time updates               │
+│  ├─ Claude Code polls via MCP tool → picks up approvals/tasks   │
+│  └─ Foundation for Board, Control Room, and approval flow       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Why this split:** Server-side Claude for chat/triage is cheap (~$0.01-0.05/interaction), always available, and architecturally simple. Local Claude Code for code writing is expensive but needs local file system access. Mixing these would add complexity with no benefit.
+
+### Approval Flow (Option B: Park & Continue)
+
+When an agent action requires human approval:
+1. Agent encounters approval gate → creates `ActionApproval` record
+2. Event bus emits `approval.requested` → UI shows notification
+3. Agent **parks** the current task, picks up next issue from work queue
+4. Human approves/denies in UI → event bus emits `approval.resolved`
+5. Claude Code picks up the resolution → resumes parked task
+
+The agent never blocks waiting on a human. Work queue always has something to do.
+
 ### Data Model
 
 ```
@@ -104,7 +143,25 @@ Content (6 models)           Infrastructure (6 models)
 
 ### Phase 1: The Product
 
-**Goal:** Three UI experiences that make Turbo Plan worth opening every day.
+**Goal:** Four UI experiences that make Turbo Plan worth opening every day, plus the event bus that powers them all.
+
+#### 1.0 Event Bus (Foundation)
+
+Everything real-time depends on this. Build first.
+
+**Server-side:**
+- Every service-layer write emits an event: `{type: "issue.created", payload: {...}, timestamp}`
+- Events stored in `events` table (append-only, with TTL cleanup)
+- SSE endpoint: `GET /api/v1/events/stream?since={timestamp}` — Web UI subscribes here
+- MCP tool: `poll_events(since)` — Claude Code polls for new events
+
+**Event types:**
+- `issue.*`, `project.*`, `milestone.*` — CRUD events
+- `agent.session_started`, `agent.tool_called`, `agent.session_ended` — agent activity
+- `approval.requested`, `approval.resolved` — approval flow
+- `chat.message` — staff/mentor conversations
+
+**Implementation:** ~200 LOC. FastAPI SSE via `sse-starlette`. Event emitter mixin for services.
 
 #### 1.1 The Board
 
@@ -120,18 +177,19 @@ Kanban + list view for issues. This is where you plan and track work.
 - Keyboard navigation (j/k, enter, / to search)
 - Inline editing (click status/priority/assignee to change)
 - Visual indicator when an issue was created or modified by Claude Code
+- **Live updates** via event bus — board refreshes when agents modify issues
 
 **Data requirements:**
 - Sorting (done in Phase 0.2)
 - Cursor-based pagination for large lists
-- WebSocket push when agents modify issues
+- Event bus subscription (replaces WebSocket)
 
 #### 1.2 The Control Room
 
 Real-time visibility into what Claude Code agents are doing. This is the differentiator.
 
 **Layout:**
-- **Activity stream** — Live feed: "Triager analyzed 5 issues", "Worker started TURBO-42"
+- **Activity stream** — Live feed via event bus: "Triager analyzed 5 issues", "Worker started TURBO-42"
 - **Active sessions** — Running agent cards: current tool call, tokens used, cost, elapsed time
 - **Stats** — Today's agent runs, total cost, issues created/closed by agents
 
@@ -154,12 +212,31 @@ Configuration UI for Claude Code agent permissions. This is the enterprise sell 
 
 **Data:** Hook system exists (5 types). Needs UI to configure rather than env vars.
 
-#### 1.4 Claude Code Integration Tightening
+#### 1.4 Staff & Mentor Chat (Server-side AI)
+
+Ideation and planning workspace in the UI. Powered by server-side Claude (headless).
+
+**How it works:**
+- User opens Staff or Mentor chat in web UI
+- Messages sent to API → API calls Claude API (server-side, headless)
+- Claude has access to Turbo Plan context (project data, issues, decisions)
+- Responses streamed back to UI via SSE
+- Conversations persisted in existing StaffConversation/MentorConversation models
+
+**Use cases:**
+- Refine a feature idea before creating issues
+- Ask a Staff domain expert for architecture advice
+- Have a Mentor help break down a milestone into tasks
+- Brainstorm with context — Claude sees your project data
+
+**Cost:** ~$0.01-0.05 per interaction. No local Claude Code needed.
+
+#### 1.5 Claude Code Integration Tightening
 
 - **Agent tokens** — Scoped API tokens for MCP server (project-limited, time-limited)
-- **Real-time sync** — WebSocket push so UI updates instantly when Claude Code acts
-- **Approval flow** — Claude Code requests approval → notification in UI → approve/deny → Claude Code continues
+- **Approval flow** — Option B: agent parks task, works on queue, resumes on approval
 - **Session linking** — Link Claude Code terminal sessions to Turbo Plan agent sessions
+- **Event polling** — MCP tool for Claude Code to poll events (approvals, assignments)
 
 ---
 
@@ -267,10 +344,12 @@ Auto-populated via service decorator. No manual logging.
 |---------|------|--------|------------|
 | Issue tracking | Deep | Clean | Deep + AI-aware |
 | AI agents | Bolt-on chatbot | None | First-class team members |
+| AI ideation/planning | None | None | Staff/Mentor chat with project context |
 | Agent guardrails | None | None | Per-agent/project config |
 | Agent visibility | None | None | Real-time control room |
-| Approval gates | None | None | Human-in-the-loop |
+| Approval gates | None | None | Human-in-the-loop (park & continue) |
 | Claude Code integration | None | None | Native MCP + scoped tokens |
+| Real-time sync | Polling | Fast | SSE event bus |
 | Self-hosted option | Expensive | No | Docker Compose |
 
 **Turbo Plan's wedge:** The only PM tool built specifically as a control plane for Claude Code.
@@ -285,6 +364,10 @@ Auto-populated via service decorator. No manual logging.
 | Career features | Removed | 2026-02-24 | Not PM. 13 models, ~14K LOC removed. |
 | Deployment model | Hosted SaaS | 2026-02-25 | Users access web UI via browser. Nothing to install. |
 | MCP server | Local, connects to hosted API | 2026-02-25 | Claude Code runs locally, needs local MCP. API is the bridge. |
+| AI execution split | Server-side for chat/triage, local for code | 2026-02-26 | Chat is cheap (~$0.01-0.05), always available, simpler. Code needs local FS. |
+| Real-time sync | SSE event bus (not WebSocket) | 2026-02-26 | Simpler than WebSocket. One-way server→client is sufficient. Claude Code polls via MCP. |
+| Approval flow | Option B: park & continue | 2026-02-26 | Agent never blocks. Parks task, works queue, resumes on approval. |
+| Staff/Mentor chat | Server-side Claude headless | 2026-02-26 | UI is active workspace for ideation, not just dashboard. Accept modest API costs. |
 
 ---
 

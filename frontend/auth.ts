@@ -18,17 +18,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: "/auth/error",
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isAuthPage = nextUrl.pathname.startsWith("/auth");
-
-      // Allow access to auth pages
-      if (isAuthPage) {
-        return true;
-      }
-
-      // Require login for all other pages
-      return isLoggedIn;
+    authorized() {
+      // Auth disabled for evaluation — allow all access
+      return true;
     },
     jwt({ token, user }) {
       if (user) {

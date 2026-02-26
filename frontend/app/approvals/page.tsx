@@ -79,9 +79,9 @@ export default function ApprovalsPage() {
       isLoading={isLoading}
       error={error}
     >
-      <div className="p-6">
+      <div className="page-padding">
         {/* Stats Bar */}
-        <div className="mb-6 grid grid-cols-5 gap-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
           <Card>
             <CardContent className="pt-6">
               <div className="text-2xl font-bold">{data?.pending_count || 0}</div>

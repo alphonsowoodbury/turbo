@@ -19,7 +19,7 @@ export default function Dashboard() {
 
   return (
     <PageLayout title="Dashboard">
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 page-padding">
         {/* Stats Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>

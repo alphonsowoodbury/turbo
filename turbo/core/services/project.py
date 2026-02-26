@@ -12,8 +12,13 @@ from turbo.core.schemas.project import (
     ProjectUpdate,
     ProjectWithStats,
 )
+import logging
+
+from turbo.core.services.event_bus import event_bus
 from turbo.core.utils import strip_emojis
 from turbo.utils.exceptions import ProjectNotFoundError
+
+logger = logging.getLogger(__name__)
 
 
 class ProjectService:
@@ -52,7 +57,14 @@ class ProjectService:
                 raise ValueError(f"Project key '{project_data.project_key}' is already in use")
 
         project = await self._project_repository.create(project_data)
-        return ProjectResponse.model_validate(project)
+        response = ProjectResponse.model_validate(project)
+
+        try:
+            await event_bus.publish("project.created", response.model_dump(mode="json"))
+        except Exception as e:
+            logger.warning("Failed to emit project.created event: %s", e)
+
+        return response
 
     async def get_project_by_id(self, project_id: UUID) -> ProjectResponse:
         """Get project by ID."""
@@ -81,13 +93,26 @@ class ProjectService:
         project = await self._project_repository.update(project_id, update_data)
         if not project:
             raise ProjectNotFoundError(project_id)
-        return ProjectResponse.model_validate(project)
+        response = ProjectResponse.model_validate(project)
+
+        try:
+            await event_bus.publish("project.updated", response.model_dump(mode="json"))
+        except Exception as e:
+            logger.warning("Failed to emit project.updated event: %s", e)
+
+        return response
 
     async def delete_project(self, project_id: UUID) -> bool:
         """Delete a project."""
         success = await self._project_repository.delete(project_id)
         if not success:
             raise ProjectNotFoundError(project_id)
+
+        try:
+            await event_bus.publish("project.deleted", {"id": str(project_id)})
+        except Exception as e:
+            logger.warning("Failed to emit project.deleted event: %s", e)
+
         return success
 
     async def archive_project(self, project_id: UUID) -> ProjectResponse:

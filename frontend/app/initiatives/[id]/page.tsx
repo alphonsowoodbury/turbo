@@ -74,7 +74,7 @@ export default function InitiativeDetailPage() {
     >
       <div className="flex flex-col h-full overflow-hidden">
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-6 pb-0">
+        <div className="flex-1 overflow-y-auto space-y-4 page-padding pb-0">
         {/* Initiative Metadata Pills */}
         <div className="flex flex-wrap items-center gap-2">
           <Button
