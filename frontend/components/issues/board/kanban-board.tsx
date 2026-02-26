@@ -12,7 +12,7 @@ import {
   KeyboardSensor,
   useSensor,
   useSensors,
-  closestCorner,
+  closestCorners,
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { KanbanColumn } from "./kanban-column";
@@ -145,7 +145,7 @@ export function KanbanBoard({ issues, onStatusChange }: KanbanBoardProps) {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorner}
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
